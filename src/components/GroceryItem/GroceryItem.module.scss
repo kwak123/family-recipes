@@ -1,0 +1,34 @@
+// SCSS Variables
+$bg: #ffffff;
+$text-secondary: #6b7280;
+$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$spacing-md: 1rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: $shadow;
+  transition: $transition;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+}
+
+.name {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.quantity {
+  color: $text-secondary;
+  font-size: 0.875rem;
+  font-weight: 500;
+}

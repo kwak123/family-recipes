@@ -1,0 +1,104 @@
+// SCSS Variables
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$bg: #ffffff;
+$text-secondary: #6b7280;
+$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.main {
+  min-height: calc(100vh - 64px);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+  }
+}
+
+.backLink {
+  color: $primary;
+  font-weight: 600;
+  transition: $transition;
+
+  &:hover {
+    color: $primary-hover;
+  }
+}
+
+.listSection {
+  background: $bg;
+  border-radius: $border-radius;
+  padding: $spacing-xl;
+  box-shadow: $shadow;
+}
+
+.itemCount {
+  color: $text-secondary;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: $spacing-lg;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.loading {
+  text-align: center;
+  color: $text-secondary;
+  padding: $spacing-2xl;
+  font-size: 1.125rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-2xl;
+
+  p {
+    color: $text-secondary;
+    font-size: 1.125rem;
+    margin-bottom: $spacing-md;
+
+    &:last-of-type {
+      margin-bottom: $spacing-lg;
+    }
+  }
+}
+
+.homeLink {
+  display: inline-block;
+  background-color: $primary;
+  color: white;
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $border-radius;
+  font-weight: 600;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}

@@ -1,0 +1,125 @@
+// SCSS Variables
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$danger: #dc2626;
+$danger-hover: #b91c1c;
+$success: #16a34a;
+$bg: #ffffff;
+$bg-secondary: #f9fafb;
+$text: #111827;
+$text-secondary: #6b7280;
+$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.card {
+  background: $bg;
+  border-radius: $border-radius;
+  padding: $spacing-lg;
+  box-shadow: $shadow;
+  transition: $transition;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+
+  &.inPlan {
+    border: 2px solid $success;
+  }
+}
+
+.header {
+  h3 {
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.meta {
+  display: flex;
+  gap: $spacing-md;
+  color: $text-secondary;
+  font-size: 0.875rem;
+  margin-bottom: $spacing-md;
+
+  span {
+    &::before {
+      content: '• ';
+      margin-right: $spacing-xs;
+    }
+
+    &:first-child::before {
+      content: '';
+      margin-right: 0;
+    }
+  }
+}
+
+.description {
+  color: $text-secondary;
+  font-size: 0.875rem;
+  margin-bottom: $spacing-md;
+  flex: 1;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.tag {
+  background-color: $bg-secondary;
+  color: $text-secondary;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: calc($border-radius / 2);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.button {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: $transition;
+
+  &.primary {
+    background-color: $primary;
+    color: white;
+
+    &:hover {
+      background-color: $primary-hover;
+    }
+  }
+
+  &.danger {
+    background-color: $danger;
+    color: white;
+
+    &:hover {
+      background-color: $danger-hover;
+    }
+  }
+}
+
+.badge {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  background-color: $success;
+  color: white;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: calc($border-radius / 2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}

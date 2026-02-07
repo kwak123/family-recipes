@@ -1,0 +1,47 @@
+// SCSS Variables
+$primary: #2563eb;
+$bg: #ffffff;
+$text: #111827;
+$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$transition: all 0.2s ease;
+
+.nav {
+  background-color: $bg;
+  box-shadow: $shadow;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-md $spacing-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $primary;
+}
+
+.links {
+  display: flex;
+  gap: $spacing-xl;
+
+  li a {
+    color: $text;
+    font-weight: 500;
+    transition: $transition;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+}

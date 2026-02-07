@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version:*)",
+      "Bash(/Users/samuelkwak/.nvm/versions/node/v18.19.0/bin/npx create-next-app@latest . --typescript --app --src-dir --no-tailwind --eslint --no-import-alias --use-npm --no-turbopack)",
+      "Bash(export PATH=\"/Users/samuelkwak/.nvm/versions/node/v18.19.0/bin:$PATH\")",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(export PATH=\"/Users/samuelkwak/.nvm/versions/node/v22.19.0/bin:$PATH\")",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

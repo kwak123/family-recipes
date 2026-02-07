@@ -1,0 +1,87 @@
+// SCSS Variables
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$text-secondary: #6b7280;
+$border: #e5e7eb;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.main {
+  min-height: calc(100vh - 64px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.inputSection {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-2xl;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.input {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  font-size: 1rem;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+.generateButton {
+  padding: $spacing-sm $spacing-xl;
+  background-color: $primary;
+  color: white;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.recipesGrid {
+  display: grid;
+  gap: $spacing-lg;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.emptyState {
+  text-align: center;
+  color: $text-secondary;
+  padding: $spacing-2xl;
+  font-size: 1.125rem;
+}
