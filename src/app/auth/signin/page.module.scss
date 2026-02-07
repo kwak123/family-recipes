@@ -1,0 +1,98 @@
+// SCSS Variables
+$primary: #2563eb;
+$bg: #ffffff;
+$text: #111827;
+$text-secondary: #6b7280;
+$border: #e5e7eb;
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+$border-radius: 0.5rem;
+$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$transition: all 0.2s ease;
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card {
+  background: $bg;
+  border-radius: $border-radius;
+  padding: $spacing-2xl;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: $shadow-lg;
+  text-align: center;
+
+  h1 {
+    font-size: 1.75rem;
+    margin-bottom: $spacing-md;
+  }
+
+  > p {
+    color: $text-secondary;
+    margin-bottom: $spacing-xl;
+  }
+}
+
+.error {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: calc($border-radius / 2);
+  padding: $spacing-md;
+  margin-bottom: $spacing-lg;
+  text-align: left;
+
+  strong {
+    display: block;
+    color: #991b1b;
+    margin-bottom: $spacing-xs;
+  }
+
+  p {
+    color: #7f1d1d;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+}
+
+.googleButton {
+  width: 100%;
+  background: $bg;
+  border: 1px solid $border;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  transition: $transition;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+    box-shadow: $shadow;
+  }
+}
+
+.googleIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.note {
+  margin-top: $spacing-lg;
+  font-size: 0.75rem;
+  color: $text-secondary;
+}

@@ -31,7 +31,7 @@ Your response must be a JSON array of recipe objects, where each recipe has this
 }
 
 GUIDELINES:
-- Generate 6-8 diverse recipes unless user specifies a different number
+- Generate exactly 9 diverse recipes
 - Ingredient names should be lowercase and generic (e.g., "chicken breast" not "Organic Free-Range Chicken")
 - Use standard units: cups, tbsp, tsp, oz, lb, whole, pieces, cloves, pinches, etc.
 - Cook times should be realistic (15-180 minutes)
@@ -44,25 +44,43 @@ RESPONSE FORMAT:
 Return ONLY the JSON array. Do not wrap in markdown code blocks. Do not add any text before or after the JSON.`;
 
 /**
- * Builds the user message based on their input preferences
+ * Builds the user message based on their input preferences and favorite ingredients
  */
-export function buildUserPrompt(preferences: string): string {
+export function buildUserPrompt(
+  preferences: string,
+  favoriteIngredients?: string[]
+): string {
   const cleanPreferences = preferences.trim();
+  let prompt = '';
 
-  if (!cleanPreferences) {
+  if (!cleanPreferences && (!favoriteIngredients || favoriteIngredients.length === 0)) {
     return "Generate a diverse set of recipes suitable for a typical week. Include a mix of vegetarian and meat dishes, quick meals and slower options, various cuisines.";
   }
 
-  return `Generate recipes based on these preferences: ${cleanPreferences}
+  if (cleanPreferences) {
+    prompt = `Generate recipes based on these preferences: ${cleanPreferences}`;
+  } else {
+    prompt = "Generate a diverse set of recipes suitable for a typical week.";
+  }
 
-Please ensure the recipes match these preferences while maintaining variety in cooking time, ingredients, and preparation style.`;
+  // Add favorite ingredients if provided
+  if (favoriteIngredients && favoriteIngredients.length > 0) {
+    prompt += `\n\nIMPORTANT: Try to incorporate these favorite ingredients: ${favoriteIngredients.join(', ')}. These are ingredients the household loves and wants to use regularly. Prioritize recipes that use one or more of these ingredients.`;
+  }
+
+  prompt += `\n\nPlease ensure the recipes match these preferences while maintaining variety in cooking time, ingredients, and preparation style.`;
+
+  return prompt;
 }
 
 /**
  * Example of how to call an AI API (Claude, GPT, etc.)
  * This is a template - you'll need to implement based on your chosen provider
  */
-export async function generateRecipesWithAI(preferences: string): Promise<Recipe[]> {
+export async function generateRecipesWithAI(
+  preferences: string,
+  favoriteIngredients?: string[]
+): Promise<Recipe[]> {
   // Example using Claude API (you'll need to install @anthropic-ai/sdk)
   // const Anthropic = require('@anthropic-ai/sdk');
   // const anthropic = new Anthropic({
@@ -70,7 +88,7 @@ export async function generateRecipesWithAI(preferences: string): Promise<Recipe
   // });
 
   const systemPrompt = RECIPE_GENERATION_SYSTEM_PROMPT;
-  const userPrompt = buildUserPrompt(preferences);
+  const userPrompt = buildUserPrompt(preferences, favoriteIngredients);
 
   // EXAMPLE - Replace with your actual AI API call
   // const message = await anthropic.messages.create({
@@ -101,28 +119,65 @@ export async function generateRecipesWithAI(preferences: string): Promise<Recipe
  */
 export function validateRecipes(data: any): data is Recipe[] {
   if (!Array.isArray(data)) {
+    console.error('Validation failed: data is not an array');
     return false;
   }
 
-  return data.every(recipe => {
-    return (
-      typeof recipe.id === 'string' &&
-      typeof recipe.name === 'string' &&
-      typeof recipe.description === 'string' &&
-      typeof recipe.cookTimeMinutes === 'number' &&
-      typeof recipe.servings === 'number' &&
-      Array.isArray(recipe.ingredients) &&
-      recipe.ingredients.every((ing: any) =>
-        typeof ing.name === 'string' &&
-        typeof ing.quantity === 'number' &&
-        typeof ing.unit === 'string'
-      ) &&
-      Array.isArray(recipe.instructions) &&
-      recipe.instructions.every((step: any) => typeof step === 'string') &&
-      Array.isArray(recipe.tags) &&
-      recipe.tags.every((tag: any) => typeof tag === 'string')
-    );
-  });
+  for (let i = 0; i < data.length; i++) {
+    const recipe = data[i];
+
+    if (typeof recipe.id !== 'string') {
+      console.error(`Recipe ${i}: id is not a string`, recipe.id);
+      return false;
+    }
+    if (typeof recipe.name !== 'string') {
+      console.error(`Recipe ${i}: name is not a string`, recipe.name);
+      return false;
+    }
+    if (typeof recipe.description !== 'string') {
+      console.error(`Recipe ${i}: description is not a string`, recipe.description);
+      return false;
+    }
+    if (typeof recipe.cookTimeMinutes !== 'number') {
+      console.error(`Recipe ${i}: cookTimeMinutes is not a number`, recipe.cookTimeMinutes);
+      return false;
+    }
+    if (typeof recipe.servings !== 'number') {
+      console.error(`Recipe ${i}: servings is not a number`, recipe.servings);
+      return false;
+    }
+    if (!Array.isArray(recipe.ingredients)) {
+      console.error(`Recipe ${i}: ingredients is not an array`, recipe.ingredients);
+      return false;
+    }
+
+    for (let j = 0; j < recipe.ingredients.length; j++) {
+      const ing = recipe.ingredients[j];
+      if (typeof ing.name !== 'string' || typeof ing.quantity !== 'number' || typeof ing.unit !== 'string') {
+        console.error(`Recipe ${i}, ingredient ${j} invalid:`, JSON.stringify(ing));
+        return false;
+      }
+    }
+
+    if (!Array.isArray(recipe.instructions)) {
+      console.error(`Recipe ${i}: instructions is not an array`, recipe.instructions);
+      return false;
+    }
+    if (!recipe.instructions.every((step: any) => typeof step === 'string')) {
+      console.error(`Recipe ${i}: instructions contains non-string`, recipe.instructions);
+      return false;
+    }
+    if (!Array.isArray(recipe.tags)) {
+      console.error(`Recipe ${i}: tags is not an array`, recipe.tags);
+      return false;
+    }
+    if (!recipe.tags.every((tag: any) => typeof tag === 'string')) {
+      console.error(`Recipe ${i}: tags contains non-string`, recipe.tags);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**

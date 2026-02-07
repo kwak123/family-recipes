@@ -18,7 +18,9 @@ export default function WeekPlan() {
     try {
       const response = await fetch('/api/week-plan');
       const data = await response.json();
-      setRecipes(data.recipes || []);
+      // Extract recipe objects from the new structure
+      const recipeList = (data.recipes || []).map((wr: any) => wr.recipe).filter(Boolean);
+      setRecipes(recipeList);
     } catch (error) {
       console.error('Failed to fetch week plan:', error);
     } finally {
@@ -34,7 +36,9 @@ export default function WeekPlan() {
         body: JSON.stringify({ recipeId })
       });
       const data = await response.json();
-      setRecipes(data.recipes || []);
+      // Extract recipe objects from the new structure
+      const recipeList = (data.recipes || []).map((wr: any) => wr.recipe).filter(Boolean);
+      setRecipes(recipeList);
     } catch (error) {
       console.error('Failed to remove recipe:', error);
     }

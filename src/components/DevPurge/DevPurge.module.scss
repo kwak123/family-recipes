@@ -1,0 +1,93 @@
+// SCSS Variables
+$danger: #dc2626;
+$danger-hover: #b91c1c;
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$bg: #ffffff;
+$border: #e5e7eb;
+$text: #111827;
+$text-secondary: #6b7280;
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$border-radius: 0.5rem;
+$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$transition: all 0.2s ease;
+
+.container {
+  background: $bg;
+  border: 2px dashed $danger;
+  border-radius: $border-radius;
+  padding: $spacing-lg;
+  margin-top: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  h3 {
+    font-size: 1rem;
+    color: $danger;
+    margin: 0;
+  }
+}
+
+.statsButton {
+  background-color: $primary;
+  color: white;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $border-radius;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
+.stats {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: $border-radius;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+
+  p {
+    margin: $spacing-xs 0;
+    font-size: 0.875rem;
+    color: $text;
+  }
+}
+
+.purgeButton {
+  width: 100%;
+  background-color: $danger;
+  color: white;
+  padding: $spacing-md;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: $transition;
+  margin-bottom: $spacing-sm;
+
+  &:hover:not(:disabled) {
+    background-color: $danger-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.warning {
+  font-size: 0.75rem;
+  color: $text-secondary;
+  text-align: center;
+  margin: 0;
+}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import DevPurge from '@/components/DevPurge/DevPurge';
 import { Recipe } from '@/lib/types';
 import styles from './page.module.scss';
 
@@ -99,6 +100,8 @@ export default function Home() {
             Enter your preferences and click Generate to see recipe suggestions.
           </p>
         )}
+
+        {process.env.NODE_ENV === 'development' && <DevPurge />}
       </div>
     </main>
   );

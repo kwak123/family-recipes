@@ -1,11 +1,16 @@
 // SCSS Variables
 $primary: #2563eb;
+$primary-hover: #1d4ed8;
 $bg: #ffffff;
 $text: #111827;
+$text-secondary: #6b7280;
 $shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
 $spacing-md: 1rem;
 $spacing-lg: 1.5rem;
 $spacing-xl: 2rem;
+$border-radius: 0.5rem;
 $transition: all 0.2s ease;
 
 .nav {
@@ -23,17 +28,24 @@ $transition: all 0.2s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: $spacing-lg;
 }
 
 .logo {
   font-size: 1.25rem;
   font-weight: 700;
   color: $primary;
+  white-space: nowrap;
 }
 
 .links {
   display: flex;
   gap: $spacing-xl;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    gap: $spacing-md;
+  }
 
   li a {
     color: $text;
@@ -43,5 +55,75 @@ $transition: all 0.2s ease;
     &:hover {
       color: $primary;
     }
+  }
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.loading {
+  color: $text-secondary;
+  font-size: 0.875rem;
+}
+
+.signInButton {
+  background-color: $primary;
+  color: white;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  @media (max-width: 768px) {
+    gap: $spacing-sm;
+  }
+}
+
+.userImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid $primary;
+}
+
+.userName {
+  font-weight: 500;
+  color: $text;
+  font-size: 0.875rem;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.signOutButton {
+  background-color: transparent;
+  color: $text;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: $transition;
+  border: 1px solid $text-secondary;
+
+  &:hover {
+    background-color: #f3f4f6;
+    border-color: $text;
   }
 }

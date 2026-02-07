@@ -1,15 +1,20 @@
-import { NextResponse } from 'next/server';
-import { getWeekPlan, getRecipesByIds } from '@/lib/db';
-import { aggregateIngredients } from '@/utils/grocery';
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentWeekPlan } from '@/lib/json-db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const weekPlan = getWeekPlan();
-    const recipes = getRecipesByIds(weekPlan.recipeIds);
-    const groceryList = aggregateIngredients(recipes);
+    const { searchParams } = new URL(request.url);
+    const householdId = searchParams.get('householdId') || 'default-household';
 
-    return NextResponse.json(groceryList);
+    const weekPlan = getCurrentWeekPlan(householdId);
+
+    if (!weekPlan) {
+      return NextResponse.json([]);
+    }
+
+    return NextResponse.json(weekPlan.generatedGroceryList);
   } catch (error) {
+    console.error('Grocery list error:', error);
     return NextResponse.json(
       { error: 'Failed to generate grocery list' },
       { status: 500 }
