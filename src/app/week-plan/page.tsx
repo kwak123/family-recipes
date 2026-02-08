@@ -8,10 +8,12 @@ import styles from './page.module.scss';
 
 export default function WeekPlan() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchWeekPlan();
+    fetchFavorites();
   }, []);
 
   const fetchWeekPlan = async () => {
@@ -28,6 +30,16 @@ export default function WeekPlan() {
     }
   };
 
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch('/api/favorites/recipes');
+      const data = await response.json();
+      setFavoriteRecipeIds(data.favoriteRecipeIds || []);
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
+    }
+  };
+
   const handleRemove = async (recipeId: string) => {
     try {
       const response = await fetch('/api/week-plan', {
@@ -41,6 +53,21 @@ export default function WeekPlan() {
       setRecipes(recipeList);
     } catch (error) {
       console.error('Failed to remove recipe:', error);
+    }
+  };
+
+  const handleToggleFavorite = async (recipeId: string) => {
+    const isFavorited = favoriteRecipeIds.includes(recipeId);
+    try {
+      const response = await fetch('/api/favorites/recipes', {
+        method: isFavorited ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipeId })
+      });
+      const data = await response.json();
+      setFavoriteRecipeIds(data.favoriteRecipeIds || []);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
     }
   };
 
@@ -67,6 +94,8 @@ export default function WeekPlan() {
                 onAction={handleRemove}
                 actionLabel="Remove"
                 actionStyle="danger"
+                isFavorited={favoriteRecipeIds.includes(recipe.id)}
+                onFavoriteToggle={handleToggleFavorite}
               />
             ))}
           </div>

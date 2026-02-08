@@ -1,8 +1,11 @@
 // SCSS Variables
 $bg: #ffffff;
 $text-secondary: #6b7280;
+$warning: #f59e0b;
+$warning-hover: #d97706;
 $shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$spacing-sm: 0.75rem;
 $spacing-md: 1rem;
 $border-radius: 0.5rem;
 $transition: all 0.2s ease;
@@ -27,8 +30,39 @@ $transition: all 0.2s ease;
   text-transform: capitalize;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
 .quantity {
   color: $text-secondary;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.favoriteButton {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: $text-secondary;
+  transition: $transition;
+  padding: 0;
+  line-height: 1;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: $warning;
+    transform: scale(1.1);
+  }
+
+  &.favorited {
+    color: $warning;
+  }
 }

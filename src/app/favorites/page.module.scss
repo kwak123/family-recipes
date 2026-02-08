@@ -1,0 +1,182 @@
+// SCSS Variables
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$danger: #dc2626;
+$danger-hover: #b91c1c;
+$border-color: #e5e7eb;
+$text-secondary: #6b7280;
+$text-muted: #9ca3af;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.main {
+  min-height: calc(100vh - 64px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+  }
+}
+
+.homeLink {
+  color: $primary;
+  font-weight: 600;
+  transition: $transition;
+
+  &:hover {
+    color: $primary-hover;
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xl;
+  border-bottom: 2px solid $border-color;
+}
+
+.tab {
+  padding: $spacing-md $spacing-lg;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-weight: 600;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    color: $primary;
+  }
+
+  &.active {
+    color: $primary;
+    border-bottom-color: $primary;
+  }
+}
+
+.recipesGrid {
+  display: grid;
+  gap: $spacing-lg;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ingredientsList {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.itemCount {
+  color: $text-muted;
+  font-size: 0.875rem;
+  margin-bottom: $spacing-md;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredientItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  border-bottom: 1px solid $border-color;
+  transition: $transition;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ingredientName {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.removeButton {
+  background: none;
+  border: 1px solid $border-color;
+  color: $danger;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background-color: $danger;
+    color: white;
+    border-color: $danger;
+  }
+}
+
+.loading {
+  text-align: center;
+  color: $text-secondary;
+  padding: $spacing-2xl;
+  font-size: 1.125rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-2xl;
+
+  p {
+    color: $text-secondary;
+    font-size: 1.125rem;
+    margin-bottom: $spacing-lg;
+
+    &:last-of-type {
+      margin-bottom: $spacing-xl;
+    }
+  }
+}
+
+.ctaLink {
+  display: inline-block;
+  background-color: $primary;
+  color: white;
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $border-radius;
+  font-weight: 600;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}

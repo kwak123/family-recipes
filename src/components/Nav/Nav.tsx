@@ -15,13 +15,16 @@ export default function Nav() {
         </Link>
         <ul className={styles.links}>
           <li>
-            <Link href="/">Home</Link>
+            <Link href="/">Find Recipes</Link>
           </li>
           <li>
             <Link href="/week-plan">Week Plan</Link>
           </li>
           <li>
             <Link href="/grocery-list">Grocery List</Link>
+          </li>
+          <li>
+            <Link href="/favorites">Favorites</Link>
           </li>
         </ul>
 

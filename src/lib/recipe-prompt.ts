@@ -36,7 +36,8 @@ GUIDELINES:
 - Use standard units: cups, tbsp, tsp, oz, lb, whole, pieces, cloves, pinches, etc.
 - Cook times should be realistic (15-180 minutes)
 - Servings typically 2-8
-- Instructions should be clear, numbered steps
+- Instructions should be SUCCINCT and clear. Keep each step to 1-2 sentences maximum. Aim for 4-6 steps total per recipe.
+- Focus on essential actions only - no unnecessary details or tips in the instructions
 - Tags should describe: diet type (vegetarian, vegan, etc.), cuisine (Italian, Asian, etc.), speed (quick, slow-cook), meal type, etc.
 - Each recipe ID should be unique (use format: recipe-1, recipe-2, etc. or generate UUIDs)
 
