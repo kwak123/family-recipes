@@ -1,0 +1,377 @@
+@import '../variables';
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-xl;
+}
+
+.header {
+  margin-bottom: $spacing-xl;
+
+  .headerContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: $spacing-sm;
+  }
+
+  .subtitle {
+    color: $text-secondary;
+    font-size: 0.95rem;
+  }
+}
+
+.viewInvitesButton {
+  padding: $spacing-sm $spacing-lg;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $primary;
+  background-color: transparent;
+  border: 2px solid $primary;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    color: white;
+    background-color: $primary;
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: $spacing-2xl;
+  color: $text-secondary;
+  font-size: 1.1rem;
+}
+
+.error {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  color: $danger;
+  padding: $spacing-md;
+  border-radius: $border-radius;
+  margin-bottom: $spacing-md;
+}
+
+.controls {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+  align-items: center;
+}
+
+.searchBar {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  font-size: 1rem;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  outline: none;
+  transition: $transition;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+.addButton {
+  padding: $spacing-sm $spacing-lg;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background-color: $primary;
+  border: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: $bg;
+  padding: $spacing-xl;
+  border-radius: $border-radius;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: $shadow-lg;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: $spacing-lg;
+    font-size: 1.5rem;
+    color: $text;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+.input {
+  padding: $spacing-sm $spacing-md;
+  font-size: 1rem;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  outline: none;
+  transition: $transition;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+.modalActions {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+}
+
+.submitButton {
+  padding: $spacing-sm $spacing-lg;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background-color: $primary;
+  border: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
+.cancelButton {
+  padding: $spacing-sm $spacing-lg;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text-secondary;
+  background-color: transparent;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background-color: $bg-secondary;
+  }
+}
+
+.homesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-2xl;
+  color: $text-secondary;
+  font-size: 1.1rem;
+}
+
+.homeCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-lg;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  transition: $transition;
+
+  &:hover {
+    box-shadow: $shadow;
+    border-color: #d1d5db;
+  }
+
+  &.selectedHome {
+    border-color: $primary;
+    background-color: rgba(37, 99, 235, 0.05);
+  }
+}
+
+.homeInfo {
+  flex: 1;
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $text;
+    margin: 0 0 $spacing-xs 0;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+
+  .homeDetails {
+    color: $text-secondary;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+.selectedBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background-color: $primary;
+  border-radius: $border-radius;
+}
+
+.homeActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.inviteButton {
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $text-secondary;
+  background-color: transparent;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background-color: $bg-secondary;
+  }
+}
+
+.selectButton {
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $primary;
+  background-color: transparent;
+  border: 2px solid $primary;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    color: white;
+    background-color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: white;
+    background-color: $primary;
+  }
+}
+
+.emptyInvites {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $text-secondary;
+  font-size: 1rem;
+}
+
+.invitesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.inviteCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  background: $bg-secondary;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+}
+
+.inviteInfo {
+  flex: 1;
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $text;
+    margin: 0 0 $spacing-xs 0;
+  }
+
+  .inviteDetails {
+    color: $text-secondary;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+}
+
+.inviteActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.acceptButton {
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  background-color: $success;
+  border: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background-color: #15803d;
+  }
+}
+
+.declineButton {
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $danger;
+  background-color: transparent;
+  border: 1px solid $danger;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    color: white;
+    background-color: $danger;
+  }
+}

@@ -96,7 +96,8 @@ export function createUser(
     picture,
     createdAt: now(),
     lastLoginAt: now(),
-    householdIds: []
+    householdIds: [],
+    homeInvites: []
   };
 
   db.users[user.id] = user;
@@ -124,6 +125,125 @@ export function getUserHouseholds(userId: string): Household[] {
   return user.householdIds
     .map(id => db.households[id])
     .filter(h => h !== undefined);
+}
+
+export function getUserByEmail(email: string): User | null {
+  const db = readDatabase();
+  return Object.values(db.users).find(user => user.email === email) || null;
+}
+
+export function setCurrentHome(userId: string, homeId: string): User {
+  const db = readDatabase();
+  const user = db.users[userId];
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Verify user has access to this home
+  if (!user.householdIds.includes(homeId)) {
+    throw new Error('User does not have access to this home');
+  }
+
+  user.currentHomeId = homeId;
+  writeDatabase(db);
+  return user;
+}
+
+export function sendHomeInvite(homeId: string, invitedByUserId: string, inviteeEmail: string): { success: boolean; message: string } {
+  const db = readDatabase();
+  const home = db.households[homeId];
+  const invitedByUser = db.users[invitedByUserId];
+
+  if (!home || !invitedByUser) {
+    throw new Error('Home or user not found');
+  }
+
+  // Verify inviter has access to the home
+  if (!home.memberIds.includes(invitedByUserId)) {
+    throw new Error('You do not have permission to invite users to this home');
+  }
+
+  // Find user by email
+  const invitee = getUserByEmail(inviteeEmail);
+  if (!invitee) {
+    return { success: false, message: 'No user found with that email address' };
+  }
+
+  // Check if already a member
+  if (home.memberIds.includes(invitee.id)) {
+    return { success: false, message: 'User is already a member of this home' };
+  }
+
+  // Check if already invited
+  if (!invitee.homeInvites) {
+    invitee.homeInvites = [];
+  }
+
+  if (invitee.homeInvites.includes(homeId)) {
+    return { success: false, message: 'User has already been invited to this home' };
+  }
+
+  // Add invite
+  invitee.homeInvites.push(homeId);
+  writeDatabase(db);
+
+  return { success: true, message: `Invite sent to ${invitee.name}` };
+}
+
+export function getUserInvites(userId: string): Household[] {
+  const db = readDatabase();
+  const user = db.users[userId];
+  if (!user || !user.homeInvites) return [];
+
+  return user.homeInvites
+    .map(id => db.households[id])
+    .filter(h => h !== undefined);
+}
+
+export function acceptHomeInvite(userId: string, homeId: string): Household {
+  const db = readDatabase();
+  const user = db.users[userId];
+  const home = db.households[homeId];
+
+  if (!user || !home) {
+    throw new Error('User or home not found');
+  }
+
+  // Verify user has been invited
+  if (!user.homeInvites || !user.homeInvites.includes(homeId)) {
+    throw new Error('No invite found for this home');
+  }
+
+  // Add user to home
+  if (!home.memberIds.includes(userId)) {
+    home.memberIds.push(userId);
+    home.updatedAt = now();
+  }
+
+  // Add home to user's list
+  if (!user.householdIds.includes(homeId)) {
+    user.householdIds.push(homeId);
+  }
+
+  // Remove invite
+  user.homeInvites = user.homeInvites.filter(id => id !== homeId);
+
+  writeDatabase(db);
+  return home;
+}
+
+export function declineHomeInvite(userId: string, homeId: string): void {
+  const db = readDatabase();
+  const user = db.users[userId];
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (user.homeInvites) {
+    user.homeInvites = user.homeInvites.filter(id => id !== homeId);
+    writeDatabase(db);
+  }
 }
 
 // ============================================================================

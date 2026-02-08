@@ -6,6 +6,8 @@ export interface User {
   createdAt: string;
   lastLoginAt: string;
   householdIds: string[];
+  currentHomeId?: string;
+  homeInvites?: string[];
 }
 
 export interface Ingredient {

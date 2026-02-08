@@ -18,6 +18,9 @@ export default function Nav() {
             <Link href="/">Home</Link>
           </li>
           <li>
+            <Link href="/my-homes">My Homes</Link>
+          </li>
+          <li>
             <Link href="/week-plan">Week Plan</Link>
           </li>
           <li>
