@@ -8,10 +8,12 @@ import styles from './page.module.scss';
 
 export default function GroceryList() {
   const [items, setItems] = useState<GroceryItemType[]>([]);
+  const [favoriteIngredients, setFavoriteIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchGroceryList();
+    fetchFavorites();
   }, []);
 
   const fetchGroceryList = async () => {
@@ -23,6 +25,32 @@ export default function GroceryList() {
       console.error('Failed to fetch grocery list:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch('/api/favorites/ingredients');
+      const data = await response.json();
+      setFavoriteIngredients(data.favoriteIngredients || []);
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
+    }
+  };
+
+  const handleToggleFavorite = async (ingredientName: string) => {
+    const normalizedName = ingredientName.toLowerCase().trim();
+    const isFavorited = favoriteIngredients.includes(normalizedName);
+    try {
+      const response = await fetch('/api/favorites/ingredients', {
+        method: isFavorited ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredient: ingredientName })
+      });
+      const data = await response.json();
+      setFavoriteIngredients(data.favoriteIngredients || []);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
     }
   };
 
@@ -45,7 +73,12 @@ export default function GroceryList() {
             </p>
             <ul className={styles.list}>
               {items.map((item, index) => (
-                <GroceryItem key={`${item.name}-${index}`} item={item} />
+                <GroceryItem
+                  key={`${item.name}-${index}`}
+                  item={item}
+                  isFavorited={favoriteIngredients.includes(item.name.toLowerCase().trim())}
+                  onFavoriteToggle={handleToggleFavorite}
+                />
               ))}
             </ul>
           </div>

@@ -10,11 +10,13 @@ export default function Home() {
   const [preferences, setPreferences] = useState('');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [weekPlanIds, setWeekPlanIds] = useState<string[]>([]);
+  const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch current week plan on mount
+  // Fetch current week plan and favorites on mount
   useEffect(() => {
     fetchWeekPlan();
+    fetchFavorites();
   }, []);
 
   const fetchWeekPlan = async () => {
@@ -24,6 +26,16 @@ export default function Home() {
       setWeekPlanIds(data.recipeIds || []);
     } catch (error) {
       console.error('Failed to fetch week plan:', error);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch('/api/favorites/recipes');
+      const data = await response.json();
+      setFavoriteRecipeIds(data.favoriteRecipeIds || []);
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
     }
   };
 
@@ -58,6 +70,21 @@ export default function Home() {
     }
   };
 
+  const handleToggleFavorite = async (recipeId: string) => {
+    const isFavorited = favoriteRecipeIds.includes(recipeId);
+    try {
+      const response = await fetch('/api/favorites/recipes', {
+        method: isFavorited ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipeId })
+      });
+      const data = await response.json();
+      setFavoriteRecipeIds(data.favoriteRecipeIds || []);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+    }
+  };
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
@@ -70,6 +97,11 @@ export default function Home() {
             placeholder="e.g. vegetarian, quick meals, Italian"
             value={preferences}
             onChange={(e) => setPreferences(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !loading) {
+                handleGenerate();
+              }
+            }}
           />
           <button
             className={styles.generateButton}
@@ -90,6 +122,8 @@ export default function Home() {
                 actionLabel="Add to Week Plan"
                 actionStyle="primary"
                 isInPlan={weekPlanIds.includes(recipe.id)}
+                isFavorited={favoriteRecipeIds.includes(recipe.id)}
+                onFavoriteToggle={handleToggleFavorite}
               />
             ))}
           </div>

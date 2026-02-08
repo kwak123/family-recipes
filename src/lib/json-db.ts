@@ -63,6 +63,36 @@ function now(): string {
   return new Date().toISOString();
 }
 
+/**
+ * Ensure default household exists, create if it doesn't
+ */
+function ensureDefaultHousehold(): Household {
+  const db = readDatabase();
+  const householdId = 'default-household';
+
+  if (!db.households[householdId]) {
+    const household: Household = {
+      id: householdId,
+      name: 'Default Household',
+      createdAt: now(),
+      updatedAt: now(),
+      ownerId: 'default-user',
+      memberIds: ['default-user'],
+      settings: {
+        defaultServings: 4,
+        preferences: []
+      },
+      favoriteIngredients: [],
+      favoriteRecipeIds: []
+    };
+    db.households[householdId] = household;
+    writeDatabase(db);
+    return household;
+  }
+
+  return db.households[householdId];
+}
+
 // ============================================================================
 // USER OPERATIONS
 // ============================================================================
@@ -252,6 +282,12 @@ export function declineHomeInvite(userId: string, homeId: string): void {
 
 export function getHousehold(householdId: string): Household | null {
   const db = readDatabase();
+
+  // Ensure default household exists
+  if (!db.households[householdId] && householdId === 'default-household') {
+    return ensureDefaultHousehold();
+  }
+
   return db.households[householdId] || null;
 }
 
@@ -302,7 +338,16 @@ export function updateHousehold(householdId: string, updates: Partial<Household>
 
 export function addFavoriteRecipe(householdId: string, recipeId: string): Household {
   const db = readDatabase();
-  const household = db.households[householdId];
+  let household = db.households[householdId];
+
+  // Create default household if it doesn't exist
+  if (!household && householdId === 'default-household') {
+    household = ensureDefaultHousehold();
+    // Re-read database after creation
+    const updatedDb = readDatabase();
+    household = updatedDb.households[householdId];
+  }
+
   if (!household) {
     throw new Error('Household not found');
   }
@@ -318,7 +363,16 @@ export function addFavoriteRecipe(householdId: string, recipeId: string): Househ
 
 export function removeFavoriteRecipe(householdId: string, recipeId: string): Household {
   const db = readDatabase();
-  const household = db.households[householdId];
+  let household = db.households[householdId];
+
+  // Create default household if it doesn't exist
+  if (!household && householdId === 'default-household') {
+    household = ensureDefaultHousehold();
+    // Re-read database after creation
+    const updatedDb = readDatabase();
+    household = updatedDb.households[householdId];
+  }
+
   if (!household) {
     throw new Error('Household not found');
   }
@@ -331,7 +385,16 @@ export function removeFavoriteRecipe(householdId: string, recipeId: string): Hou
 
 export function addFavoriteIngredient(householdId: string, ingredient: string): Household {
   const db = readDatabase();
-  const household = db.households[householdId];
+  let household = db.households[householdId];
+
+  // Create default household if it doesn't exist
+  if (!household && householdId === 'default-household') {
+    household = ensureDefaultHousehold();
+    // Re-read database after creation
+    const updatedDb = readDatabase();
+    household = updatedDb.households[householdId];
+  }
+
   if (!household) {
     throw new Error('Household not found');
   }
@@ -348,7 +411,16 @@ export function addFavoriteIngredient(householdId: string, ingredient: string): 
 
 export function removeFavoriteIngredient(householdId: string, ingredient: string): Household {
   const db = readDatabase();
-  const household = db.households[householdId];
+  let household = db.households[householdId];
+
+  // Create default household if it doesn't exist
+  if (!household && householdId === 'default-household') {
+    household = ensureDefaultHousehold();
+    // Re-read database after creation
+    const updatedDb = readDatabase();
+    household = updatedDb.households[householdId];
+  }
+
   if (!household) {
     throw new Error('Household not found');
   }

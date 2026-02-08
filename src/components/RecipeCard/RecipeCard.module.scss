@@ -4,6 +4,8 @@ $primary-hover: #1d4ed8;
 $danger: #dc2626;
 $danger-hover: #b91c1c;
 $success: #16a34a;
+$warning: #f59e0b;
+$warning-hover: #d97706;
 $bg: #ffffff;
 $bg-secondary: #f9fafb;
 $text: #111827;
@@ -85,8 +87,86 @@ $transition: all 0.2s ease;
   font-weight: 500;
 }
 
+.details {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $bg-secondary;
+}
+
+.ingredients {
+  margin-bottom: $spacing-lg;
+
+  h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: $spacing-sm;
+    color: $text;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: $spacing-xs 0;
+      font-size: 0.875rem;
+      color: $text-secondary;
+      border-bottom: 1px solid $bg-secondary;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+.instructions {
+  h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: $spacing-sm;
+    color: $text;
+  }
+
+  ol {
+    padding-left: $spacing-lg;
+    margin: 0;
+
+    li {
+      padding: $spacing-xs 0;
+      font-size: 0.875rem;
+      color: $text-secondary;
+      line-height: 1.5;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.expandButton {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius;
+  font-weight: 500;
+  font-size: 0.875rem;
+  background-color: $bg-secondary;
+  color: $text;
+  border: 1px solid $bg-secondary;
+  transition: $transition;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
 .button {
-  width: 100%;
+  flex: 1;
   padding: $spacing-sm $spacing-md;
   border-radius: $border-radius;
   font-weight: 500;
@@ -122,4 +202,32 @@ $transition: all 0.2s ease;
   border-radius: calc($border-radius / 2);
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.favoriteButton {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: $text-secondary;
+  transition: $transition;
+  padding: 0;
+  line-height: 1;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: $warning;
+    transform: scale(1.1);
+  }
+
+  &.favorited {
+    color: $warning;
+  }
 }
