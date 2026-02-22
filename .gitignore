@@ -41,3 +41,7 @@ next-env.d.ts
 # IDE
 .vscode
 .idea
+
+# Firebase service account keys
+*-firebase-adminsdk-*.json
+family-recipes-*.json
