@@ -111,6 +111,14 @@ Firestore will use the following collection structure:
 - **recipes**: Recipe information including ingredients and instructions
 - **weekPlans**: Weekly meal plans and grocery lists
 
+**🔧 Environment Separation**
+
+Collections are automatically suffixed based on the `FIRESTORE_ENV` environment variable:
+- **Development** (`FIRESTORE_ENV=dev`): `users_dev`, `households_dev`, `recipes_dev`, `weekPlans_dev`
+- **Production** (`FIRESTORE_ENV=prod`): `users_prod`, `households_prod`, `recipes_prod`, `weekPlans_prod`
+
+This keeps development and production data completely isolated in the same Firebase project.
+
 ### Schema Mapping
 
 The Firestore schema directly mirrors the TypeScript types defined in `src/lib/types.ts`:

@@ -52,6 +52,16 @@ function getFirestore(): admin.firestore.Firestore {
 // ============================================================================
 
 /**
+ * Get collection name with environment suffix
+ * Local: users_dev, recipes_dev, etc.
+ * Production: users_prod, recipes_prod, etc.
+ */
+function getCollectionName(baseName: string): string {
+  const env = process.env.FIRESTORE_ENV || 'dev';
+  return `${baseName}_${env}`;
+}
+
+/**
  * Generate unique ID
  */
 function generateId(prefix: string): string {
@@ -87,7 +97,7 @@ function isoToTimestamp(iso: string): Timestamp {
 async function ensureDefaultHousehold(): Promise<Household> {
   const db = getFirestore();
   const householdId = 'default-household';
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
   const householdDoc = await householdRef.get();
 
   if (!householdDoc.exists) {
@@ -119,7 +129,7 @@ async function ensureDefaultHousehold(): Promise<Household> {
 export async function getUser(userId: string): Promise<User | null> {
   try {
     const db = getFirestore();
-    const userDoc = await db.collection('users').doc(userId).get();
+    const userDoc = await db.collection(getCollectionName('users')).doc(userId).get();
 
     if (!userDoc.exists) {
       return null;
@@ -151,13 +161,13 @@ export async function createUser(
     homeInvites: []
   };
 
-  await db.collection('users').doc(user.id).set(user);
+  await db.collection(getCollectionName('users')).doc(user.id).set(user);
   return user;
 }
 
 export async function updateUserLastLogin(userId: string): Promise<User> {
   const db = getFirestore();
-  const userRef = db.collection('users').doc(userId);
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
   const userDoc = await userRef.get();
 
   if (!userDoc.exists) {
@@ -182,7 +192,7 @@ export async function getUserHouseholds(userId: string): Promise<Household[]> {
 
   // Fetch all households that the user is a member of
   for (const householdId of user.householdIds) {
-    const householdDoc = await db.collection('households').doc(householdId).get();
+    const householdDoc = await db.collection(getCollectionName('households')).doc(householdId).get();
     if (householdDoc.exists) {
       households.push(householdDoc.data() as Household);
     }
@@ -193,7 +203,7 @@ export async function getUserHouseholds(userId: string): Promise<Household[]> {
 
 export async function getUserByEmail(email: string): Promise<User | null> {
   const db = getFirestore();
-  const usersSnapshot = await db.collection('users')
+  const usersSnapshot = await db.collection(getCollectionName('users'))
     .where('email', '==', email)
     .limit(1)
     .get();
@@ -207,7 +217,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 
 export async function setCurrentHome(userId: string, homeId: string): Promise<User> {
   const db = getFirestore();
-  const userRef = db.collection('users').doc(userId);
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
   const userDoc = await userRef.get();
 
   if (!userDoc.exists) {
@@ -235,8 +245,8 @@ export async function sendHomeInvite(
   inviteeEmail: string
 ): Promise<{ success: boolean; message: string }> {
   const db = getFirestore();
-  const homeDoc = await db.collection('households').doc(homeId).get();
-  const invitedByUserDoc = await db.collection('users').doc(invitedByUserId).get();
+  const homeDoc = await db.collection(getCollectionName('households')).doc(homeId).get();
+  const invitedByUserDoc = await db.collection(getCollectionName('users')).doc(invitedByUserId).get();
 
   if (!homeDoc.exists || !invitedByUserDoc.exists) {
     throw new Error('Home or user not found');
@@ -268,7 +278,7 @@ export async function sendHomeInvite(
   }
 
   // Add invite
-  const inviteeRef = db.collection('users').doc(invitee.id);
+  const inviteeRef = db.collection(getCollectionName('users')).doc(invitee.id);
   await inviteeRef.update({
     homeInvites: admin.firestore.FieldValue.arrayUnion(homeId)
   });
@@ -284,7 +294,7 @@ export async function getUserInvites(userId: string): Promise<Household[]> {
   const households: Household[] = [];
 
   for (const homeId of user.homeInvites) {
-    const homeDoc = await db.collection('households').doc(homeId).get();
+    const homeDoc = await db.collection(getCollectionName('households')).doc(homeId).get();
     if (homeDoc.exists) {
       households.push(homeDoc.data() as Household);
     }
@@ -295,8 +305,8 @@ export async function getUserInvites(userId: string): Promise<Household[]> {
 
 export async function acceptHomeInvite(userId: string, homeId: string): Promise<Household> {
   const db = getFirestore();
-  const userRef = db.collection('users').doc(userId);
-  const homeRef = db.collection('households').doc(homeId);
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
+  const homeRef = db.collection(getCollectionName('households')).doc(homeId);
 
   const [userDoc, homeDoc] = await Promise.all([
     userRef.get(),
@@ -341,7 +351,7 @@ export async function acceptHomeInvite(userId: string, homeId: string): Promise<
 
 export async function declineHomeInvite(userId: string, homeId: string): Promise<void> {
   const db = getFirestore();
-  const userRef = db.collection('users').doc(userId);
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
 
   await userRef.update({
     homeInvites: admin.firestore.FieldValue.arrayRemove(homeId)
@@ -357,13 +367,13 @@ export async function getHousehold(householdId: string): Promise<Household | nul
 
   // Ensure default household exists
   if (householdId === 'default-household') {
-    const householdDoc = await db.collection('households').doc(householdId).get();
+    const householdDoc = await db.collection(getCollectionName('households')).doc(householdId).get();
     if (!householdDoc.exists) {
       return await ensureDefaultHousehold();
     }
   }
 
-  const householdDoc = await db.collection('households').doc(householdId).get();
+  const householdDoc = await db.collection(getCollectionName('households')).doc(householdId).get();
 
   if (!householdDoc.exists) {
     return null;
@@ -393,11 +403,11 @@ export async function createHousehold(name: string, ownerId: string): Promise<Ho
   const batch = db.batch();
 
   // Create household
-  const householdRef = db.collection('households').doc(household.id);
+  const householdRef = db.collection(getCollectionName('households')).doc(household.id);
   batch.set(householdRef, household);
 
   // Add household to user's list
-  const userRef = db.collection('users').doc(ownerId);
+  const userRef = db.collection(getCollectionName('users')).doc(ownerId);
   batch.update(userRef, {
     householdIds: admin.firestore.FieldValue.arrayUnion(household.id)
   });
@@ -412,7 +422,7 @@ export async function updateHousehold(
   updates: Partial<Household>
 ): Promise<Household> {
   const db = getFirestore();
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
   const householdDoc = await householdRef.get();
 
   if (!householdDoc.exists) {
@@ -432,7 +442,7 @@ export async function updateHousehold(
 
 export async function addFavoriteRecipe(householdId: string, recipeId: string): Promise<Household> {
   const db = getFirestore();
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
 
   // Ensure default household exists
   if (householdId === 'default-household') {
@@ -453,7 +463,7 @@ export async function addFavoriteRecipe(householdId: string, recipeId: string): 
 
 export async function removeFavoriteRecipe(householdId: string, recipeId: string): Promise<Household> {
   const db = getFirestore();
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
 
   // Ensure default household exists
   if (householdId === 'default-household') {
@@ -474,7 +484,7 @@ export async function removeFavoriteRecipe(householdId: string, recipeId: string
 
 export async function addFavoriteIngredient(householdId: string, ingredient: string): Promise<Household> {
   const db = getFirestore();
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
 
   // Ensure default household exists
   if (householdId === 'default-household') {
@@ -497,7 +507,7 @@ export async function addFavoriteIngredient(householdId: string, ingredient: str
 
 export async function removeFavoriteIngredient(householdId: string, ingredient: string): Promise<Household> {
   const db = getFirestore();
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
 
   // Ensure default household exists
   if (householdId === 'default-household') {
@@ -522,8 +532,8 @@ export async function addHouseholdMember(householdId: string, userId: string): P
   const db = getFirestore();
   const batch = db.batch();
 
-  const householdRef = db.collection('households').doc(householdId);
-  const userRef = db.collection('users').doc(userId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
 
   batch.update(householdRef, {
     memberIds: admin.firestore.FieldValue.arrayUnion(userId),
@@ -542,7 +552,7 @@ export async function addHouseholdMember(householdId: string, userId: string): P
 
 export async function removeHouseholdMember(householdId: string, userId: string): Promise<Household> {
   const db = getFirestore();
-  const householdRef = db.collection('households').doc(householdId);
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
   const householdDoc = await householdRef.get();
 
   if (!householdDoc.exists) {
@@ -563,7 +573,7 @@ export async function removeHouseholdMember(householdId: string, userId: string)
     updatedAt: now()
   });
 
-  const userRef = db.collection('users').doc(userId);
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
   batch.update(userRef, {
     householdIds: admin.firestore.FieldValue.arrayRemove(householdId)
   });
@@ -590,7 +600,7 @@ export async function isHouseholdMember(householdId: string, userId: string): Pr
 
 export async function getRecipe(recipeId: string): Promise<Recipe | null> {
   const db = getFirestore();
-  const recipeDoc = await db.collection('recipes').doc(recipeId).get();
+  const recipeDoc = await db.collection(getCollectionName('recipes')).doc(recipeId).get();
 
   if (!recipeDoc.exists) {
     return null;
@@ -604,7 +614,7 @@ export async function getRecipesByHousehold(
   includeArchived = false
 ): Promise<Recipe[]> {
   const db = getFirestore();
-  let query = db.collection('recipes')
+  let query = db.collection(getCollectionName('recipes'))
     .where('householdId', '==', householdId);
 
   if (!includeArchived) {
@@ -631,7 +641,7 @@ export async function getFavoriteRecipes(householdId: string): Promise<Recipe[]>
     const batch = household.favoriteRecipeIds.slice(i, i + batchSize);
 
     if (batch.length > 0) {
-      const snapshot = await db.collection('recipes')
+      const snapshot = await db.collection(getCollectionName('recipes'))
         .where(admin.firestore.FieldPath.documentId(), 'in', batch)
         .where('isArchived', '==', false)
         .get();
@@ -652,7 +662,7 @@ export async function saveRecipe(recipe: Omit<Recipe, 'id' | 'createdAt'>): Prom
     createdAt: now()
   };
 
-  await db.collection('recipes').doc(newRecipe.id).set(newRecipe);
+  await db.collection(getCollectionName('recipes')).doc(newRecipe.id).set(newRecipe);
   return newRecipe;
 }
 
@@ -667,7 +677,7 @@ export async function saveRecipes(recipes: Omit<Recipe, 'createdAt'>[]): Promise
       createdAt: now()
     };
 
-    const recipeRef = db.collection('recipes').doc(newRecipe.id);
+    const recipeRef = db.collection(getCollectionName('recipes')).doc(newRecipe.id);
     batch.set(recipeRef, newRecipe);
     savedRecipes.push(newRecipe);
   }
@@ -678,7 +688,7 @@ export async function saveRecipes(recipes: Omit<Recipe, 'createdAt'>[]): Promise
 
 export async function updateRecipe(recipeId: string, updates: Partial<Recipe>): Promise<Recipe> {
   const db = getFirestore();
-  const recipeRef = db.collection('recipes').doc(recipeId);
+  const recipeRef = db.collection(getCollectionName('recipes')).doc(recipeId);
   const recipeDoc = await recipeRef.get();
 
   if (!recipeDoc.exists) {
@@ -701,7 +711,7 @@ export async function archiveRecipe(recipeId: string): Promise<Recipe> {
 
 export async function getWeekPlan(householdId: string, weekStartDate: string): Promise<WeekPlan | null> {
   const db = getFirestore();
-  const snapshot = await db.collection('weekPlans')
+  const snapshot = await db.collection(getCollectionName('weekPlans'))
     .where('householdId', '==', householdId)
     .where('weekStartDate', '==', weekStartDate)
     .limit(1)
@@ -734,7 +744,7 @@ export async function createWeekPlan(householdId: string, weekStartDate: string)
     updatedAt: now()
   };
 
-  await db.collection('weekPlans').doc(weekPlan.id).set(weekPlan);
+  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).set(weekPlan);
   return weekPlan;
 }
 
@@ -780,7 +790,7 @@ export async function addRecipeToWeekPlan(
   weekPlan.updatedAt = now();
 
   const db = getFirestore();
-  await db.collection('weekPlans').doc(weekPlan.id).update({
+  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
     recipes: weekPlan.recipes,
     generatedGroceryList: weekPlan.generatedGroceryList,
     updatedAt: weekPlan.updatedAt
@@ -814,7 +824,7 @@ export async function removeRecipeFromWeekPlan(
   weekPlan.updatedAt = now();
 
   const db = getFirestore();
-  await db.collection('weekPlans').doc(weekPlan.id).update({
+  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
     recipes: weekPlan.recipes,
     generatedGroceryList: weekPlan.generatedGroceryList,
     updatedAt: weekPlan.updatedAt
@@ -844,7 +854,7 @@ export async function updateGroceryItemChecked(
     weekPlan.updatedAt = now();
 
     const db = getFirestore();
-    await db.collection('weekPlans').doc(weekPlan.id).update({
+    await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
       generatedGroceryList: weekPlan.generatedGroceryList,
       updatedAt: weekPlan.updatedAt
     });
@@ -883,7 +893,7 @@ export async function purgeDatabase(): Promise<void> {
   const collections = ['users', 'households', 'recipes', 'weekPlans'];
 
   for (const collectionName of collections) {
-    const snapshot = await db.collection(collectionName).get();
+    const snapshot = await db.collection(getCollectionName(collectionName)).get();
     const batch = db.batch();
 
     snapshot.docs.forEach(doc => {
@@ -898,10 +908,10 @@ export async function getDatabaseStats() {
   const db = getFirestore();
 
   const [usersSnapshot, householdsSnapshot, recipesSnapshot, weekPlansSnapshot] = await Promise.all([
-    db.collection('users').get(),
-    db.collection('households').get(),
-    db.collection('recipes').get(),
-    db.collection('weekPlans').get()
+    db.collection(getCollectionName('users')).get(),
+    db.collection(getCollectionName('households')).get(),
+    db.collection(getCollectionName('recipes')).get(),
+    db.collection(getCollectionName('weekPlans')).get()
   ]);
 
   return {

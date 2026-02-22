@@ -95,6 +95,16 @@ If you're using the Firestore backend from the `kwak123-firestore-backend` workt
   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhki...\n-----END PRIVATE KEY-----\n"
   ```
 
+**`FIRESTORE_ENV`**
+- **Purpose:** Environment suffix for Firestore collections to separate dev/prod data
+- **Format:** String (typically "dev" or "prod")
+- **How it works:**
+  - `dev` creates collections: `users_dev`, `recipes_dev`, etc.
+  - `prod` creates collections: `users_prod`, `recipes_prod`, etc.
+- **Development:** Set to `dev`
+- **Production:** Set to `prod`
+- **Example:** `FIRESTORE_ENV=dev`
+
 ## Setup Instructions
 
 ### 1. Local Development Setup
@@ -126,6 +136,7 @@ GEMINI_API_KEY=AIza-your-api-key
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+FIRESTORE_ENV=dev
 ```
 
 **Test the configuration:**
@@ -162,6 +173,7 @@ Visit `http://localhost:3000` and try signing in with Google.
 | `FIREBASE_PROJECT_ID` | Yes | Yes | Yes |
 | `FIREBASE_CLIENT_EMAIL` | Yes | Yes | Yes |
 | `FIREBASE_PRIVATE_KEY` | Yes | Yes | Yes |
+| `FIRESTORE_ENV` | Yes (`prod`) | Yes (`dev`) | Yes (`dev`) |
 
 *Vercel automatically sets `NEXTAUTH_URL` for production and preview deployments based on the deployment URL.
 
@@ -273,6 +285,7 @@ GEMINI_API_KEY=AIza-your-api-key
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+FIRESTORE_ENV=dev
 ```
 
 ## Reference Links

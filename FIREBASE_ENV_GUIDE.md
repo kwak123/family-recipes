@@ -7,7 +7,19 @@ Your Firebase service account is already set up:
 ```bash
 FIREBASE_PROJECT_ID=family-recipes-486716
 FIREBASE_CLIENT_EMAIL=family-recipes-main@family-recipes-486716.iam.gserviceaccount.com
+FIRESTORE_ENV=dev  # or 'prod' for production
 ```
+
+### Collection Naming Strategy
+
+Collections are automatically suffixed with the environment:
+
+| Environment | Collections |
+|-------------|-------------|
+| **Local (dev)** | `users_dev`, `households_dev`, `recipes_dev`, `weekPlans_dev` |
+| **Production (prod)** | `users_prod`, `households_prod`, `recipes_prod`, `weekPlans_prod` |
+
+This keeps development and production data completely separate in the same Firebase project!
 
 ## Getting Your Private Key
 
@@ -47,6 +59,7 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFA
 FIREBASE_PROJECT_ID=family-recipes-486716
 FIREBASE_CLIENT_EMAIL=family-recipes-main@family-recipes-486716.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...paste the full key here...\n-----END PRIVATE KEY-----\n"
+FIRESTORE_ENV=dev
 ```
 
 ### Vercel Deployment
@@ -56,8 +69,12 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...paste the full key here...
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your project
 3. Go to **Settings** > **Environment Variables**
-4. Add variable: `FIREBASE_PRIVATE_KEY`
-5. In the value field, paste the key with actual line breaks:
+4. Add these variables:
+
+**FIREBASE_PROJECT_ID**: `family-recipes-486716`
+**FIREBASE_CLIENT_EMAIL**: `family-recipes-main@family-recipes-486716.iam.gserviceaccount.com`
+**FIRESTORE_ENV**: `prod` (⚠️ Use "prod" for production!)
+**FIREBASE_PRIVATE_KEY**: Paste the key with actual line breaks:
 
 ```
 -----BEGIN PRIVATE KEY-----
