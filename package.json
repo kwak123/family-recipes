@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "firestore:test": "ts-node scripts/test-firestore-connection.ts",
+    "firestore:migrate": "ts-node scripts/migrate-to-firestore.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "firebase-admin": "^12.0.0",
     "next": "^15.1.6",
     "next-auth": "^5.0.0-beta.30",
     "react": "^19.0.0",
@@ -22,6 +25,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^15.1.6",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
