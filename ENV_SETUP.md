@@ -21,7 +21,7 @@ The Family Recipes app requires several environment variables for authentication
   ```
 - **Development:** Can use a fixed value for consistency
 - **Production:** Must be a strong, unique, randomly generated secret
-- **Example:** `4J8kP9mN2vL3xQ6rT8yU1wE5sA7dF0gH9jK2mN5pQ8rT1uW4xZ7aC0eF3gH6jK9m`
+- **Example:** `your-randomly-generated-secret-at-least-32-chars-long`
 
 **`NEXTAUTH_URL`**
 - **Purpose:** Base URL for NextAuth callbacks and redirects
@@ -43,14 +43,14 @@ The Family Recipes app requires several environment variables for authentication
   5. Add authorized redirect URIs:
      - Development: `http://localhost:3000/api/auth/callback/google`
      - Production: `https://your-domain.vercel.app/api/auth/callback/google`
-- **Example:** `919052489169-c0jgkhosgrrspcq3msrrl4igepettehb.apps.googleusercontent.com`
+- **Example:** `123456789-abc123def456.apps.googleusercontent.com`
 
 **`GOOGLE_CLIENT_SECRET`**
 - **Purpose:** Google OAuth application client secret
 - **Format:** String starting with `GOCSPX-`
 - **How to obtain:** Generated with the Client ID (see above)
 - **Security:** Keep this secret! Never commit to version control
-- **Example:** `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`
+- **Example:** `GOCSPX-your_client_secret_here`
 
 #### Google Gemini API
 
@@ -61,7 +61,7 @@ The Family Recipes app requires several environment variables for authentication
   1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
   2. Create an API key
   3. Enable the Gemini API for your project
-- **Example:** `AIzaSyCCHLUuLemCV1LAsomf5x_BelbsJGz6jtU`
+- **Example:** `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
 
 ### Optional (Firebase/Firestore Integration)
 
