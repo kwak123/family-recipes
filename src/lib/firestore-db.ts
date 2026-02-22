@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
-import { User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem } from './types';
+import { User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
 // ============================================================================
@@ -146,7 +146,8 @@ export async function createUser(
   googleId: string,
   email: string,
   name: string,
-  picture?: string
+  picture?: string,
+  isAdmin?: boolean
 ): Promise<User> {
   const db = getFirestore();
 
@@ -158,7 +159,8 @@ export async function createUser(
     createdAt: now(),
     lastLoginAt: now(),
     householdIds: [],
-    homeInvites: []
+    homeInvites: [],
+    isAdmin
   };
 
   await db.collection(getCollectionName('users')).doc(user.id).set(user);
@@ -356,6 +358,96 @@ export async function declineHomeInvite(userId: string, homeId: string): Promise
   await userRef.update({
     homeInvites: admin.firestore.FieldValue.arrayRemove(homeId)
   });
+}
+
+// ============================================================================
+// USER INVITE OPERATIONS
+// ============================================================================
+
+export async function sendUserInvite(adminUserId: string, email: string): Promise<UserInvite> {
+  const db = getFirestore();
+
+  // Verify admin has isAdmin: true
+  const admin = await getUser(adminUserId);
+  if (!admin?.isAdmin) {
+    throw new Error('Only admin users can send invites');
+  }
+
+  // Check email not already a user
+  const existingUser = await getUserByEmail(email);
+  if (existingUser) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Check email doesn't have pending invite
+  const inviteRef = db.collection(getCollectionName('userInvites')).doc(email);
+  const existingInviteDoc = await inviteRef.get();
+
+  if (existingInviteDoc.exists) {
+    const existingInvite = existingInviteDoc.data() as UserInvite;
+    if (existingInvite.status === 'pending') {
+      throw new Error('Pending invite already exists for this email');
+    }
+  }
+
+  // Create UserInvite with status: 'pending'
+  const invite: UserInvite = {
+    id: email,
+    email,
+    invitedBy: adminUserId,
+    invitedAt: now(),
+    status: 'pending'
+  };
+
+  await inviteRef.set(invite);
+  return invite;
+}
+
+export async function getUserInviteByEmail(email: string): Promise<UserInvite | null> {
+  const db = getFirestore();
+  const inviteDoc = await db.collection(getCollectionName('userInvites')).doc(email).get();
+
+  if (!inviteDoc.exists) {
+    return null;
+  }
+
+  return inviteDoc.data() as UserInvite;
+}
+
+export async function getPendingUserInvites(): Promise<UserInvite[]> {
+  const db = getFirestore();
+  const snapshot = await db.collection(getCollectionName('userInvites'))
+    .where('status', '==', 'pending')
+    .get();
+
+  return snapshot.docs.map(doc => doc.data() as UserInvite);
+}
+
+export async function acceptUserInvite(email: string): Promise<void> {
+  const db = getFirestore();
+  const inviteRef = db.collection(getCollectionName('userInvites')).doc(email);
+  const inviteDoc = await inviteRef.get();
+
+  if (!inviteDoc.exists) {
+    throw new Error('Invite not found');
+  }
+
+  await inviteRef.update({
+    status: 'accepted',
+    acceptedAt: now()
+  });
+}
+
+export async function revokeUserInvite(email: string): Promise<void> {
+  const db = getFirestore();
+  const inviteRef = db.collection(getCollectionName('userInvites')).doc(email);
+
+  await inviteRef.delete();
+}
+
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  const user = await getUser(userId);
+  return user?.isAdmin === true;
 }
 
 // ============================================================================
@@ -890,7 +982,7 @@ export async function purgeDatabase(): Promise<void> {
   const db = getFirestore();
 
   // Delete all documents in each collection
-  const collections = ['users', 'households', 'recipes', 'weekPlans'];
+  const collections = ['users', 'households', 'recipes', 'weekPlans', 'userInvites'];
 
   for (const collectionName of collections) {
     const snapshot = await db.collection(getCollectionName(collectionName)).get();
@@ -907,17 +999,19 @@ export async function purgeDatabase(): Promise<void> {
 export async function getDatabaseStats() {
   const db = getFirestore();
 
-  const [usersSnapshot, householdsSnapshot, recipesSnapshot, weekPlansSnapshot] = await Promise.all([
+  const [usersSnapshot, householdsSnapshot, recipesSnapshot, weekPlansSnapshot, userInvitesSnapshot] = await Promise.all([
     db.collection(getCollectionName('users')).get(),
     db.collection(getCollectionName('households')).get(),
     db.collection(getCollectionName('recipes')).get(),
-    db.collection(getCollectionName('weekPlans')).get()
+    db.collection(getCollectionName('weekPlans')).get(),
+    db.collection(getCollectionName('userInvites')).get()
   ]);
 
   return {
     users: usersSnapshot.size,
     households: householdsSnapshot.size,
     recipes: recipesSnapshot.size,
-    weekPlans: weekPlansSnapshot.size
+    weekPlans: weekPlansSnapshot.size,
+    userInvites: userInvitesSnapshot.size
   };
 }

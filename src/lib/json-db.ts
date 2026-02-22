@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Database, User, Household, Recipe, WeekPlan, GroceryItem } from './types';
+import { Database, User, Household, Recipe, WeekPlan, GroceryItem, UserInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
@@ -13,7 +13,8 @@ function getEmptyDatabase(): Database {
     users: {},
     households: {},
     recipes: {},
-    weekPlans: {}
+    weekPlans: {},
+    userInvites: {}
   };
 }
 
@@ -110,7 +111,8 @@ export function createUser(
   googleId: string,
   email: string,
   name: string,
-  picture?: string
+  picture?: string,
+  isAdmin?: boolean
 ): User {
   const db = readDatabase();
 
@@ -127,7 +129,8 @@ export function createUser(
     createdAt: now(),
     lastLoginAt: now(),
     householdIds: [],
-    homeInvites: []
+    homeInvites: [],
+    isAdmin
   };
 
   db.users[user.id] = user;
@@ -274,6 +277,99 @@ export function declineHomeInvite(userId: string, homeId: string): void {
     user.homeInvites = user.homeInvites.filter(id => id !== homeId);
     writeDatabase(db);
   }
+}
+
+// ============================================================================
+// USER INVITE OPERATIONS
+// ============================================================================
+
+export function sendUserInvite(adminUserId: string, email: string): UserInvite {
+  const db = readDatabase();
+
+  // Ensure userInvites collection exists
+  if (!db.userInvites) {
+    db.userInvites = {};
+  }
+
+  // Verify admin has isAdmin: true
+  const admin = db.users[adminUserId];
+  if (!admin?.isAdmin) {
+    throw new Error('Only admin users can send invites');
+  }
+
+  // Check email not already a user
+  const existingUser = getUserByEmail(email);
+  if (existingUser) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Check email doesn't have pending invite
+  const existingInvite = db.userInvites[email];
+  if (existingInvite && existingInvite.status === 'pending') {
+    throw new Error('Pending invite already exists for this email');
+  }
+
+  // Create UserInvite with status: 'pending'
+  const invite: UserInvite = {
+    id: email,
+    email,
+    invitedBy: adminUserId,
+    invitedAt: now(),
+    status: 'pending'
+  };
+
+  db.userInvites[email] = invite;
+  writeDatabase(db);
+  return invite;
+}
+
+export function getUserInviteByEmail(email: string): UserInvite | null {
+  const db = readDatabase();
+  if (!db.userInvites) {
+    return null;
+  }
+  return db.userInvites[email] || null;
+}
+
+export function getPendingUserInvites(): UserInvite[] {
+  const db = readDatabase();
+  if (!db.userInvites) {
+    return [];
+  }
+  return Object.values(db.userInvites).filter(invite => invite.status === 'pending');
+}
+
+export function acceptUserInvite(email: string): void {
+  const db = readDatabase();
+  if (!db.userInvites) {
+    db.userInvites = {};
+  }
+
+  const invite = db.userInvites[email];
+  if (!invite) {
+    throw new Error('Invite not found');
+  }
+
+  invite.status = 'accepted';
+  invite.acceptedAt = now();
+  writeDatabase(db);
+}
+
+export function revokeUserInvite(email: string): void {
+  const db = readDatabase();
+  if (!db.userInvites) {
+    return;
+  }
+
+  if (db.userInvites[email]) {
+    delete db.userInvites[email];
+    writeDatabase(db);
+  }
+}
+
+export function isUserAdmin(userId: string): boolean {
+  const user = getUser(userId);
+  return user?.isAdmin === true;
 }
 
 // ============================================================================

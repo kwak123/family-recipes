@@ -8,6 +8,7 @@ export interface User {
   householdIds: string[];
   currentHomeId?: string;
   homeInvites?: string[];
+  isAdmin?: boolean; // Admin permission flag
 }
 
 export interface Ingredient {
@@ -73,10 +74,20 @@ export interface WeekPlan {
   updatedAt: string; // ISO string
 }
 
+export interface UserInvite {
+  id: string; // email address (unique)
+  email: string;
+  invitedBy: string; // admin user ID
+  invitedAt: string; // ISO timestamp
+  status: 'pending' | 'accepted' | 'declined';
+  acceptedAt?: string;
+}
+
 // Database collections structure
 export interface Database {
   users: { [id: string]: User };
   households: { [id: string]: Household };
   recipes: { [id: string]: Recipe };
   weekPlans: { [id: string]: WeekPlan };
+  userInvites: { [id: string]: UserInvite };
 }

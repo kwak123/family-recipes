@@ -1,0 +1,181 @@
+.container {
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.header {
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.backButton {
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #4b5563;
+  }
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.formCard,
+.invitesCard {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.formTitle,
+.invitesTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+  }
+}
+
+.submitButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: #2563eb;
+  }
+
+  &:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+  }
+}
+
+.errorMessage {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.successMessage {
+  color: #16a34a;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.loadingText,
+.emptyText {
+  color: #6b7280;
+  text-align: center;
+  padding: 2rem;
+  margin: 0;
+}
+
+.invitesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.inviteItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.inviteInfo {
+  flex: 1;
+}
+
+.inviteEmail {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.inviteMeta {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.revokeButton {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #dc2626;
+  }
+
+  &:active {
+    background: #b91c1c;
+  }
+}
