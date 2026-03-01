@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecipesByHousehold } from '@/lib/json-db';
+import { getRecipesByHousehold } from '@/lib/firestore-db';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const householdId = searchParams.get('householdId') || 'default-household';
 
-    const recipes = getRecipesByHousehold(householdId, false);
+    const recipes = await getRecipesByHousehold(householdId, false);
 
     return NextResponse.json(recipes);
   } catch (error) {

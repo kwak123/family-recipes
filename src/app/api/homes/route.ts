@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserHouseholds, createHousehold, getUser } from '@/lib/json-db';
+import { getUserHouseholds, createHousehold, getUser } from '@/lib/firestore-db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,8 +13,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const homes = getUserHouseholds(session.user.id);
-    const user = getUser(session.user.id);
+    const [homes, user] = await Promise.all([
+      getUserHouseholds(session.user.id),
+      getUser(session.user.id)
+    ]);
 
     return NextResponse.json({
       homes,
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const home = createHousehold(name.trim(), session.user.id);
+    const home = await createHousehold(name.trim(), session.user.id);
 
     return NextResponse.json({ home }, { status: 201 });
   } catch (error) {

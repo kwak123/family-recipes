@@ -5,7 +5,7 @@ import {
   sendUserInvite,
   revokeUserInvite,
   getUser
-} from '@/lib/json-db';
+} from '@/lib/firestore-db';
 
 /**
  * GET /api/admin/invites
@@ -15,16 +15,18 @@ export async function GET() {
   try {
     await requireAdmin();
 
-    const invites = getPendingUserInvites();
+    const invites = await getPendingUserInvites();
 
     // Enhance invites with inviter names
-    const invitesWithNames = invites.map(invite => {
-      const inviter = getUser(invite.invitedBy);
-      return {
-        ...invite,
-        inviterName: inviter?.name || 'Unknown'
-      };
-    });
+    const invitesWithNames = await Promise.all(
+      invites.map(async invite => {
+        const inviter = await getUser(invite.invitedBy);
+        return {
+          ...invite,
+          inviterName: inviter?.name || 'Unknown'
+        };
+      })
+    );
 
     return NextResponse.json(invitesWithNames);
   } catch (error) {
@@ -74,7 +76,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const invite = sendUserInvite(admin.id, email);
+    const invite = await sendUserInvite(admin.id, email);
 
     return NextResponse.json(
       { success: true, invite },
@@ -125,7 +127,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    revokeUserInvite(email);
+    await revokeUserInvite(email);
 
     return NextResponse.json(
       { success: true, message: 'Invite revoked' }

@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // Helper functions
+    // -------------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isHouseholdMemberDev(householdId) {
+      return isSignedIn() &&
+        request.auth.uid in
+          get(/databases/$(database)/documents/households_dev/$(householdId)).data.memberIds;
+    }
+
+    function isHouseholdMemberProd(householdId) {
+      return isSignedIn() &&
+        request.auth.uid in
+          get(/databases/$(database)/documents/households_prod/$(householdId)).data.memberIds;
+    }
+
+    // -------------------------------------------------------------------------
+    // users_{env}
+    //   - Users may only read and update their own document.
+    //   - Creation is allowed for any signed-in user (first-login account setup).
+    //   - Server-side Admin SDK handles cross-user lookups (email search, etc.).
+    // -------------------------------------------------------------------------
+
+    match /users_dev/{userId} {
+      allow read:   if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    match /users_prod/{userId} {
+      allow read:   if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // households_{env}
+    //   - Only members may read a household.
+    //   - Any signed-in user may create a household (they must be the owner).
+    //   - Only members may update (favorites, settings, member list, etc.).
+    //   - Only the owner may delete.
+    // -------------------------------------------------------------------------
+
+    match /households_dev/{householdId} {
+      allow read:   if isSignedIn() && request.auth.uid in resource.data.memberIds;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+      allow update: if isSignedIn() && request.auth.uid in resource.data.memberIds;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerId;
+    }
+
+    match /households_prod/{householdId} {
+      allow read:   if isSignedIn() && request.auth.uid in resource.data.memberIds;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+      allow update: if isSignedIn() && request.auth.uid in resource.data.memberIds;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerId;
+    }
+
+    // -------------------------------------------------------------------------
+    // recipes_{env}
+    //   - Only members of the recipe's household may read, create, update, or
+    //     delete recipes. Membership is verified via a get() on the household.
+    // -------------------------------------------------------------------------
+
+    match /recipes_dev/{recipeId} {
+      allow read:   if isHouseholdMemberDev(resource.data.householdId);
+      allow create: if isHouseholdMemberDev(request.resource.data.householdId);
+      allow update: if isHouseholdMemberDev(resource.data.householdId);
+      allow delete: if isHouseholdMemberDev(resource.data.householdId);
+    }
+
+    match /recipes_prod/{recipeId} {
+      allow read:   if isHouseholdMemberProd(resource.data.householdId);
+      allow create: if isHouseholdMemberProd(request.resource.data.householdId);
+      allow update: if isHouseholdMemberProd(resource.data.householdId);
+      allow delete: if isHouseholdMemberProd(resource.data.householdId);
+    }
+
+    // -------------------------------------------------------------------------
+    // weekPlans_{env}
+    //   - Same membership check as recipes.
+    // -------------------------------------------------------------------------
+
+    match /weekPlans_dev/{weekPlanId} {
+      allow read:   if isHouseholdMemberDev(resource.data.householdId);
+      allow create: if isHouseholdMemberDev(request.resource.data.householdId);
+      allow update: if isHouseholdMemberDev(resource.data.householdId);
+      allow delete: if isHouseholdMemberDev(resource.data.householdId);
+    }
+
+    match /weekPlans_prod/{weekPlanId} {
+      allow read:   if isHouseholdMemberProd(resource.data.householdId);
+      allow create: if isHouseholdMemberProd(request.resource.data.householdId);
+      allow update: if isHouseholdMemberProd(resource.data.householdId);
+      allow delete: if isHouseholdMemberProd(resource.data.householdId);
+    }
+
+    // -------------------------------------------------------------------------
+    // userInvites_{env}
+    //   - Platform-level invite system managed exclusively by the server-side
+    //     Admin SDK. No direct client access permitted.
+    // -------------------------------------------------------------------------
+
+    match /userInvites_dev/{inviteId} {
+      allow read, write: if false;
+    }
+
+    match /userInvites_prod/{inviteId} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Deny everything else by default.
+    // -------------------------------------------------------------------------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

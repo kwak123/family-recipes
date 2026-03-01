@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import styles from './page.module.scss';
 
 function SignInContent() {
@@ -57,7 +58,7 @@ function SignInContent() {
 
 export default function SignIn() {
   return (
-    <Suspense fallback={<div className={styles.container}><div className={styles.card}>Loading...</div></div>}>
+    <Suspense fallback={<LoadingScreen />}>
       <SignInContent />
     </Suspense>
   );

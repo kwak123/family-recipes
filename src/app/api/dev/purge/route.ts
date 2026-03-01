@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { purgeDatabase, getDatabaseStats } from '@/lib/json-db';
+import { purgeDatabase, getDatabaseStats } from '@/lib/firestore-db';
 
 export async function POST() {
   // Only allow in development
@@ -11,11 +11,11 @@ export async function POST() {
   }
 
   try {
-    purgeDatabase();
+    await purgeDatabase();
 
     return NextResponse.json({
       message: 'Database purged successfully',
-      stats: getDatabaseStats()
+      stats: await getDatabaseStats()
     });
   } catch (error) {
     console.error('Purge error:', error);
@@ -28,7 +28,7 @@ export async function POST() {
 
 export async function GET() {
   try {
-    const stats = getDatabaseStats();
+    const stats = await getDatabaseStats();
     return NextResponse.json(stats);
   } catch (error) {
     console.error('Stats error:', error);

@@ -83,6 +83,14 @@ export interface UserInvite {
   acceptedAt?: string;
 }
 
+export interface PendingHomeInvite {
+  id: string; // unique ID
+  email: string; // invitee's email
+  homeId: string; // household ID
+  invitedBy: string; // user ID of inviter
+  invitedAt: string; // ISO timestamp
+}
+
 // Database collections structure
 export interface Database {
   users: { [id: string]: User };
@@ -90,4 +98,5 @@ export interface Database {
   recipes: { [id: string]: Recipe };
   weekPlans: { [id: string]: WeekPlan };
   userInvites: { [id: string]: UserInvite };
+  pendingHomeInvites: { [id: string]: PendingHomeInvite };
 }

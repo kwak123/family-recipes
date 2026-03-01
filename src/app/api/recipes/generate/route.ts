@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRecipesWithGemini } from '@/lib/ai-providers/gemini';
-import { saveRecipes } from '@/lib/json-db';
+import { saveRecipes } from '@/lib/firestore-db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       isArchived: false
     }));
 
-    const savedRecipes = saveRecipes(recipesToSave);
+    const savedRecipes = await saveRecipes(recipesToSave);
 
     return NextResponse.json(savedRecipes);
   } catch (error) {

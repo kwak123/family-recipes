@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 import styles from './page.module.scss';
 
 interface Home {
@@ -19,11 +20,20 @@ interface User {
   currentHomeId?: string;
 }
 
+interface OutgoingInvite {
+  email: string;
+  name: string;
+  userId: string;
+  invitedAt?: string;
+  isPending?: boolean;
+}
+
 export default function MyHomesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [homes, setHomes] = useState<Home[]>([]);
   const [filteredHomes, setFilteredHomes] = useState<Home[]>([]);
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +45,10 @@ export default function MyHomesPage() {
   const [isInviting, setIsInviting] = useState(false);
   const [inviteHomeId, setInviteHomeId] = useState<string>('');
   const [inviteEmail, setInviteEmail] = useState('');
+  const [isViewingOutgoingInvites, setIsViewingOutgoingInvites] = useState(false);
+  const [outgoingInvites, setOutgoingInvites] = useState<OutgoingInvite[]>([]);
+  const [outgoingInvitesHomeId, setOutgoingInvitesHomeId] = useState<string>('');
+  const [outgoingInvitesHomeName, setOutgoingInvitesHomeName] = useState<string>('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -49,16 +63,16 @@ export default function MyHomesPage() {
     }
   }, [session]);
 
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const query = searchInput.trim().toLowerCase();
+    if (query === '') {
       setFilteredHomes(homes);
     } else {
-      const query = searchQuery.toLowerCase();
-      setFilteredHomes(
-        homes.filter(home => home.name.toLowerCase().includes(query))
-      );
+      setFilteredHomes(homes.filter(home => home.name.toLowerCase().includes(query)));
     }
-  }, [searchQuery, homes]);
+    setSearchQuery(searchInput);
+  }
 
   async function fetchHomes() {
     try {
@@ -201,12 +215,45 @@ export default function MyHomesPage() {
     }
   }
 
+  async function handleViewOutgoingInvites(homeId: string, homeName: string) {
+    try {
+      setOutgoingInvitesHomeId(homeId);
+      setOutgoingInvitesHomeName(homeName);
+
+      const response = await fetch(`/api/homes/${homeId}/invites/sent`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch outgoing invites');
+      }
+
+      const data = await response.json();
+      setOutgoingInvites(data.invites || []);
+      setIsViewingOutgoingInvites(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch outgoing invites');
+    }
+  }
+
+  async function handleRevokeInvite(inviteeUserId: string) {
+    try {
+      const response = await fetch(`/api/homes/${outgoingInvitesHomeId}/invites/sent`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteeUserId })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to revoke invite');
+      }
+
+      // Refresh outgoing invites
+      await handleViewOutgoingInvites(outgoingInvitesHomeId, outgoingInvitesHomeName);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to revoke invite');
+    }
+  }
+
   if (status === 'loading' || loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!session) {
@@ -216,18 +263,24 @@ export default function MyHomesPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <div>
-            <h1>My Homes</h1>
-            <p className={styles.subtitle}>A home is required to use the rest of the features</p>
+        <div className={styles.headerTop}>
+          <h1>My Homes</h1>
+          <div className={styles.headerActions}>
+            <button
+              onClick={() => setIsViewingInvites(true)}
+              className={styles.viewInvitesButton}
+            >
+              View Invites {invites.length > 0 && `(${invites.length})`}
+            </button>
+            <button
+              onClick={() => setIsAddingHome(true)}
+              className={styles.addButton}
+            >
+              Add Home
+            </button>
           </div>
-          <button
-            onClick={() => setIsViewingInvites(true)}
-            className={styles.viewInvitesButton}
-          >
-            View Invites {invites.length > 0 && `(${invites.length})`}
-          </button>
         </div>
+        <p className={styles.subtitle}>A home is required to use the rest of the features</p>
       </div>
 
       {error && (
@@ -236,21 +289,16 @@ export default function MyHomesPage() {
         </div>
       )}
 
-      <div className={styles.controls}>
+      <form className={styles.controls} onSubmit={handleSearch}>
         <input
           type="text"
           placeholder="Search homes by name..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           className={styles.searchBar}
         />
-        <button
-          onClick={() => setIsAddingHome(true)}
-          className={styles.addButton}
-        >
-          Add Home
-        </button>
-      </div>
+        <button type="submit" className={styles.searchButton}>Search</button>
+      </form>
 
       {isAddingHome && (
         <div className={styles.modal}>
@@ -366,6 +414,53 @@ export default function MyHomesPage() {
         </div>
       )}
 
+      {isViewingOutgoingInvites && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2>Outgoing Invites - {outgoingInvitesHomeName}</h2>
+            {outgoingInvites.length === 0 ? (
+              <p className={styles.emptyInvites}>No pending outgoing invites</p>
+            ) : (
+              <div className={styles.invitesList}>
+                {outgoingInvites.map((invite) => (
+                  <div key={invite.userId} className={styles.inviteCard}>
+                    <div className={styles.inviteInfo}>
+                      <h3>
+                        {invite.name}
+                        {invite.isPending && <span className={styles.pendingBadge}> (Pending signup)</span>}
+                      </h3>
+                      <p className={styles.inviteDetails}>
+                        {invite.email}
+                      </p>
+                    </div>
+                    <div className={styles.inviteActions}>
+                      <button
+                        onClick={() => handleRevokeInvite(invite.userId)}
+                        className={styles.revokeButton}
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsViewingOutgoingInvites(false);
+                  setOutgoingInvites([]);
+                }}
+                className={styles.cancelButton}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={styles.homesList}>
         {filteredHomes.length === 0 ? (
           <div className={styles.emptyState}>
@@ -393,6 +488,13 @@ export default function MyHomesPage() {
                 </p>
               </div>
               <div className={styles.homeActions}>
+                <button
+                  onClick={() => handleViewOutgoingInvites(home.id, home.name)}
+                  className={styles.viewSentButton}
+                  title="View sent invites"
+                >
+                  Sent Invites
+                </button>
                 <button
                   onClick={() => {
                     setInviteHomeId(home.id);

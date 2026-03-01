@@ -3,7 +3,7 @@ import {
   addFavoriteRecipe,
   removeFavoriteRecipe,
   getHousehold
-} from '@/lib/json-db';
+} from '@/lib/firestore-db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const defaultHouseholdId = householdId || 'default-household';
-    const household = addFavoriteRecipe(defaultHouseholdId, recipeId);
+    const household = await addFavoriteRecipe(defaultHouseholdId, recipeId);
 
     return NextResponse.json({
       success: true,
@@ -50,7 +50,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const defaultHouseholdId = householdId || 'default-household';
-    const household = removeFavoriteRecipe(defaultHouseholdId, recipeId);
+    const household = await removeFavoriteRecipe(defaultHouseholdId, recipeId);
 
     return NextResponse.json({
       success: true,
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const householdId = searchParams.get('householdId') || 'default-household';
 
-    const household = getHousehold(householdId);
+    const household = await getHousehold(householdId);
 
     if (!household) {
       return NextResponse.json({

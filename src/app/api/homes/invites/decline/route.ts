@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { declineHomeInvite } from '@/lib/json-db';
+import { declineHomeInvite } from '@/lib/firestore-db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    declineHomeInvite(session.user.id, homeId);
+    await declineHomeInvite(session.user.id, homeId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
+import { getFirestore as getFirestoreInstance, Timestamp } from 'firebase-admin/firestore';
 import { User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
@@ -44,7 +44,7 @@ function getFirebaseApp(): admin.app.App {
 
 function getFirestore(): admin.firestore.Firestore {
   const app = getFirebaseApp();
-  return admin.firestore(app);
+  return getFirestoreInstance(app, 'family-recipes');
 }
 
 // ============================================================================
@@ -125,6 +125,12 @@ async function ensureDefaultHousehold(): Promise<Household> {
 // ============================================================================
 // USER OPERATIONS
 // ============================================================================
+
+export async function hasAnyUsers(): Promise<boolean> {
+  const db = getFirestore();
+  const snapshot = await db.collection(getCollectionName('users')).limit(1).get();
+  return !snapshot.empty;
+}
 
 export async function getUser(userId: string): Promise<User | null> {
   try {
@@ -356,6 +362,60 @@ export async function declineHomeInvite(userId: string, homeId: string): Promise
   const userRef = db.collection(getCollectionName('users')).doc(userId);
 
   await userRef.update({
+    homeInvites: admin.firestore.FieldValue.arrayRemove(homeId)
+  });
+}
+
+export interface OutgoingInvite {
+  email: string;
+  name: string;
+  userId: string;
+  invitedAt?: string;
+  isPending?: boolean;
+}
+
+export async function getOutgoingHomeInvites(homeId: string): Promise<OutgoingInvite[]> {
+  const db = getFirestore();
+
+  // Find all users who have this homeId in their homeInvites array
+  const snapshot = await db.collection(getCollectionName('users'))
+    .where('homeInvites', 'array-contains', homeId)
+    .get();
+
+  return snapshot.docs.map(doc => {
+    const user = doc.data() as User;
+    return {
+      email: user.email,
+      name: user.name,
+      userId: user.id,
+      isPending: false
+    };
+  });
+}
+
+export async function revokeHomeInvite(homeId: string, userId: string, inviteeUserId: string): Promise<void> {
+  const db = getFirestore();
+  const homeDoc = await db.collection(getCollectionName('households')).doc(homeId).get();
+
+  if (!homeDoc.exists) {
+    throw new Error('Home not found');
+  }
+
+  const home = homeDoc.data() as Household;
+
+  // Verify revoker has access to the home
+  if (!home.memberIds.includes(userId)) {
+    throw new Error('You do not have permission to revoke invites for this home');
+  }
+
+  const inviteeRef = db.collection(getCollectionName('users')).doc(inviteeUserId);
+  const inviteeDoc = await inviteeRef.get();
+
+  if (!inviteeDoc.exists) {
+    throw new Error('User not found');
+  }
+
+  await inviteeRef.update({
     homeInvites: admin.firestore.FieldValue.arrayRemove(homeId)
   });
 }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Database, User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite } from './types';
+import { Database, User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite, PendingHomeInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
@@ -14,7 +14,8 @@ function getEmptyDatabase(): Database {
     households: {},
     recipes: {},
     weekPlans: {},
-    userInvites: {}
+    userInvites: {},
+    pendingHomeInvites: {}
   };
 }
 
@@ -121,6 +122,11 @@ export function createUser(
     db.users = {};
   }
 
+  // Ensure pendingHomeInvites collection exists
+  if (!db.pendingHomeInvites) {
+    db.pendingHomeInvites = {};
+  }
+
   const user: User = {
     id: googleId,
     email,
@@ -134,6 +140,21 @@ export function createUser(
   };
 
   db.users[user.id] = user;
+
+  // Convert any pending home invites for this email to active invites
+  const pendingInvites = Object.values(db.pendingHomeInvites).filter(
+    invite => invite.email.toLowerCase() === email.toLowerCase()
+  );
+
+  for (const pendingInvite of pendingInvites) {
+    // Add home invite to user
+    if (!user.homeInvites!.includes(pendingInvite.homeId)) {
+      user.homeInvites!.push(pendingInvite.homeId);
+    }
+    // Remove pending invite
+    delete db.pendingHomeInvites[pendingInvite.id];
+  }
+
   writeDatabase(db);
   return user;
 }
@@ -196,31 +217,60 @@ export function sendHomeInvite(homeId: string, invitedByUserId: string, inviteeE
     throw new Error('You do not have permission to invite users to this home');
   }
 
+  // Ensure pendingHomeInvites collection exists
+  if (!db.pendingHomeInvites) {
+    db.pendingHomeInvites = {};
+  }
+
   // Find user by email
   const invitee = getUserByEmail(inviteeEmail);
-  if (!invitee) {
-    return { success: false, message: 'No user found with that email address' };
+
+  if (invitee) {
+    // User exists - use existing invite logic
+    // Check if already a member
+    if (home.memberIds.includes(invitee.id)) {
+      return { success: false, message: 'User is already a member of this home' };
+    }
+
+    // Check if already invited
+    if (!invitee.homeInvites) {
+      invitee.homeInvites = [];
+    }
+
+    if (invitee.homeInvites.includes(homeId)) {
+      return { success: false, message: 'User has already been invited to this home' };
+    }
+
+    // Add invite
+    invitee.homeInvites.push(homeId);
+    writeDatabase(db);
+
+    return { success: true, message: `Invite sent to ${invitee.name}` };
+  } else {
+    // User doesn't exist yet - create pending invite
+    // Check if pending invite already exists
+    const existingPending = Object.values(db.pendingHomeInvites).find(
+      invite => invite.email.toLowerCase() === inviteeEmail.toLowerCase() && invite.homeId === homeId
+    );
+
+    if (existingPending) {
+      return { success: false, message: 'Invite already sent to this email address' };
+    }
+
+    // Create pending invite
+    const pendingInvite: PendingHomeInvite = {
+      id: generateId('pending-home-invite'),
+      email: inviteeEmail,
+      homeId,
+      invitedBy: invitedByUserId,
+      invitedAt: now()
+    };
+
+    db.pendingHomeInvites[pendingInvite.id] = pendingInvite;
+    writeDatabase(db);
+
+    return { success: true, message: `Invite sent to ${inviteeEmail}` };
   }
-
-  // Check if already a member
-  if (home.memberIds.includes(invitee.id)) {
-    return { success: false, message: 'User is already a member of this home' };
-  }
-
-  // Check if already invited
-  if (!invitee.homeInvites) {
-    invitee.homeInvites = [];
-  }
-
-  if (invitee.homeInvites.includes(homeId)) {
-    return { success: false, message: 'User has already been invited to this home' };
-  }
-
-  // Add invite
-  invitee.homeInvites.push(homeId);
-  writeDatabase(db);
-
-  return { success: true, message: `Invite sent to ${invitee.name}` };
 }
 
 export function getUserInvites(userId: string): Household[] {
@@ -231,6 +281,16 @@ export function getUserInvites(userId: string): Household[] {
   return user.homeInvites
     .map(id => db.households[id])
     .filter(h => h !== undefined);
+}
+
+export function getPendingHomeInvitesByEmail(email: string): PendingHomeInvite[] {
+  const db = readDatabase();
+  if (!db.pendingHomeInvites) {
+    return [];
+  }
+  return Object.values(db.pendingHomeInvites).filter(
+    invite => invite.email.toLowerCase() === email.toLowerCase()
+  );
 }
 
 export function acceptHomeInvite(userId: string, homeId: string): Household {
@@ -275,6 +335,90 @@ export function declineHomeInvite(userId: string, homeId: string): void {
 
   if (user.homeInvites) {
     user.homeInvites = user.homeInvites.filter(id => id !== homeId);
+    writeDatabase(db);
+  }
+}
+
+export interface OutgoingInvite {
+  email: string;
+  name: string;
+  userId: string;
+  invitedAt?: string;
+  isPending?: boolean; // true if user doesn't have an account yet
+}
+
+export function getOutgoingHomeInvites(homeId: string): OutgoingInvite[] {
+  const db = readDatabase();
+  const home = db.households[homeId];
+
+  if (!home) {
+    return [];
+  }
+
+  // Find all users who have this homeId in their homeInvites array
+  const invitedUsers = Object.values(db.users)
+    .filter(user => user.homeInvites && user.homeInvites.includes(homeId))
+    .map(user => ({
+      email: user.email,
+      name: user.name,
+      userId: user.id,
+      invitedAt: user.lastLoginAt, // Using lastLoginAt as proxy since we don't track invite time separately
+      isPending: false
+    }));
+
+  // Ensure pendingHomeInvites collection exists
+  if (!db.pendingHomeInvites) {
+    db.pendingHomeInvites = {};
+  }
+
+  // Find all pending invites for this home
+  const pendingInvites = Object.values(db.pendingHomeInvites)
+    .filter(invite => invite.homeId === homeId)
+    .map(invite => ({
+      email: invite.email,
+      name: invite.email, // Use email as name since user doesn't exist yet
+      userId: invite.id, // Use invite ID as userId for deletion purposes
+      invitedAt: invite.invitedAt,
+      isPending: true
+    }));
+
+  return [...invitedUsers, ...pendingInvites];
+}
+
+export function revokeHomeInvite(homeId: string, userId: string, inviteeUserId: string): void {
+  const db = readDatabase();
+  const home = db.households[homeId];
+
+  if (!home) {
+    throw new Error('Home not found');
+  }
+
+  // Verify revoker has access to the home
+  if (!home.memberIds.includes(userId)) {
+    throw new Error('You do not have permission to revoke invites for this home');
+  }
+
+  // Ensure pendingHomeInvites collection exists
+  if (!db.pendingHomeInvites) {
+    db.pendingHomeInvites = {};
+  }
+
+  // Check if this is a pending invite (inviteeUserId is actually the pending invite ID)
+  if (db.pendingHomeInvites[inviteeUserId]) {
+    delete db.pendingHomeInvites[inviteeUserId];
+    writeDatabase(db);
+    return;
+  }
+
+  // Otherwise, it's a regular user invite
+  const invitee = db.users[inviteeUserId];
+  if (!invitee) {
+    throw new Error('User not found');
+  }
+
+  // Remove the homeId from the invitee's homeInvites array
+  if (invitee.homeInvites) {
+    invitee.homeInvites = invitee.homeInvites.filter(id => id !== homeId);
     writeDatabase(db);
   }
 }

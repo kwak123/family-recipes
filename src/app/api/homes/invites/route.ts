@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getUserInvites } from '@/lib/json-db';
+import { getUserInvites } from '@/lib/firestore-db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const invites = getUserInvites(session.user.id);
+    const invites = await getUserInvites(session.user.id);
 
     return NextResponse.json({ invites });
   } catch (error) {

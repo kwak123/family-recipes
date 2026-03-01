@@ -4,14 +4,14 @@ import {
   addRecipeToWeekPlan,
   removeRecipeFromWeekPlan,
   getRecipe
-} from '@/lib/json-db';
+} from '@/lib/firestore-db';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const householdId = searchParams.get('householdId') || 'default-household';
 
-    const weekPlan = getCurrentWeekPlan(householdId);
+    const weekPlan = await getCurrentWeekPlan(householdId);
 
     if (!weekPlan) {
       return NextResponse.json({
@@ -23,13 +23,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get full recipe details
-    const recipesWithDetails = weekPlan.recipes.map(wr => {
-      const recipe = getRecipe(wr.recipeId);
-      return {
-        ...wr,
-        recipe
-      };
-    });
+    const recipesWithDetails = await Promise.all(
+      weekPlan.recipes.map(async wr => {
+        const recipe = await getRecipe(wr.recipeId);
+        return { ...wr, recipe };
+      })
+    );
 
     return NextResponse.json({
       ...weekPlan,
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
     const defaultDay = dayOfWeek || 'monday';
     const defaultMeal = mealType || 'dinner';
 
-    const updatedPlan = addRecipeToWeekPlan(
+    const updatedPlan = await addRecipeToWeekPlan(
       defaultHouseholdId,
       recipeId,
       defaultDay,
@@ -70,13 +69,12 @@ export async function POST(request: NextRequest) {
     );
 
     // Get full recipe details
-    const recipesWithDetails = updatedPlan.recipes.map(wr => {
-      const recipe = getRecipe(wr.recipeId);
-      return {
-        ...wr,
-        recipe
-      };
-    });
+    const recipesWithDetails = await Promise.all(
+      updatedPlan.recipes.map(async wr => {
+        const recipe = await getRecipe(wr.recipeId);
+        return { ...wr, recipe };
+      })
+    );
 
     return NextResponse.json({
       ...updatedPlan,
@@ -109,16 +107,15 @@ export async function DELETE(request: NextRequest) {
 
     const defaultHouseholdId = householdId || 'default-household';
 
-    const updatedPlan = removeRecipeFromWeekPlan(defaultHouseholdId, recipeId);
+    const updatedPlan = await removeRecipeFromWeekPlan(defaultHouseholdId, recipeId);
 
     // Get full recipe details
-    const recipesWithDetails = updatedPlan.recipes.map(wr => {
-      const recipe = getRecipe(wr.recipeId);
-      return {
-        ...wr,
-        recipe
-      };
-    });
+    const recipesWithDetails = await Promise.all(
+      updatedPlan.recipes.map(async wr => {
+        const recipe = await getRecipe(wr.recipeId);
+        return { ...wr, recipe };
+      })
+    );
 
     return NextResponse.json({
       ...updatedPlan,

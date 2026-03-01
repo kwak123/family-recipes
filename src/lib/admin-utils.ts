@@ -1,5 +1,5 @@
 import { auth } from './auth';
-import { getUser } from './json-db';
+import { getUser } from './firestore-db';
 
 /**
  * Verify current user is an admin, throw error if not
@@ -12,7 +12,7 @@ export async function requireAdmin() {
     throw new Error('Unauthorized: You must be signed in');
   }
 
-  const user = getUser(session.user.id);
+  const user = await getUser(session.user.id);
 
   if (!user?.isAdmin) {
     throw new Error('Forbidden: Admin access required');

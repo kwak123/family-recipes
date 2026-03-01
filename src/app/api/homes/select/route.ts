@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { setCurrentHome } from '@/lib/json-db';
+import { setCurrentHome } from '@/lib/firestore-db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = setCurrentHome(session.user.id, homeId);
+    const user = await setCurrentHome(session.user.id, homeId);
 
     return NextResponse.json({ user });
   } catch (error) {

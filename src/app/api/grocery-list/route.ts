@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentWeekPlan } from '@/lib/json-db';
+import { getCurrentWeekPlan } from '@/lib/firestore-db';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const householdId = searchParams.get('householdId') || 'default-household';
 
-    const weekPlan = getCurrentWeekPlan(householdId);
+    const weekPlan = await getCurrentWeekPlan(householdId);
 
     if (!weekPlan) {
       return NextResponse.json([]);

@@ -64,6 +64,10 @@ p {
   max-width: 1200px;
   margin: 0 auto;
   padding: $spacing-xl $spacing-lg;
+
+  @media (max-width: 640px) {
+    padding: $spacing-md;
+  }
 }
 
 .btn {

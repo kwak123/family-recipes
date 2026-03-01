@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { sendHomeInvite } from '@/lib/json-db';
+import { sendHomeInvite } from '@/lib/firestore-db';
 
 export async function POST(
   request: NextRequest,
@@ -27,7 +27,7 @@ export async function POST(
       );
     }
 
-    const result = sendHomeInvite(homeId, session.user.id, email.trim());
+    const result = await sendHomeInvite(homeId, session.user.id, email.trim());
 
     if (!result.success) {
       return NextResponse.json(
