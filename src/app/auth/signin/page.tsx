@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import styles from './page.module.scss';
 
-export default function SignIn() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -51,5 +52,13 @@ export default function SignIn() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div className={styles.container}><div className={styles.card}>Loading...</div></div>}>
+      <SignInContent />
+    </Suspense>
   );
 }

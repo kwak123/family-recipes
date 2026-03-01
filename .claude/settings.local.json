@@ -13,7 +13,12 @@
       "Bash(npm run build:*)",
       "Bash(test:*)",
       "Bash(./create-worktree.sh:*)",
-      "Bash(./merge-worktree.sh:*)"
+      "Bash(./merge-worktree.sh:*)",
+      "Bash(export:*)",
+      "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm use:*)",
+      "Bash(export PATH:*)"
     ]
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.scss';
 
@@ -23,11 +23,7 @@ export default function AdminInvitesPage() {
   const [sendError, setSendError] = useState('');
   const [sendSuccess, setSendSuccess] = useState('');
 
-  useEffect(() => {
-    loadInvites();
-  }, []);
-
-  async function loadInvites() {
+  const loadInvites = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -51,7 +47,11 @@ export default function AdminInvitesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
+
+  useEffect(() => {
+    loadInvites();
+  }, [loadInvites]);
 
   async function handleSendInvite(e: React.FormEvent) {
     e.preventDefault();

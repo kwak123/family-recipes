@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Database, User, Household, Recipe, WeekPlan, GroceryItem, UserInvite } from './types';
+import { Database, User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');

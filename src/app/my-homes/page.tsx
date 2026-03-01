@@ -370,9 +370,9 @@ export default function MyHomesPage() {
         {filteredHomes.length === 0 ? (
           <div className={styles.emptyState}>
             {searchQuery ? (
-              <p>No homes found matching "{searchQuery}"</p>
+              <p>No homes found matching &quot;{searchQuery}&quot;</p>
             ) : (
-              <p>No homes yet. Click "Add Home" to get started!</p>
+              <p>No homes yet. Click &quot;Add Home&quot; to get started!</p>
             )}
           </div>
         ) : (
