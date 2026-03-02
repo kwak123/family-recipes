@@ -247,6 +247,45 @@ export async function setCurrentHome(userId: string, homeId: string): Promise<Us
   };
 }
 
+async function addPendingHomeInvite(email: string, homeId: string): Promise<void> {
+  const db = getFirestore();
+  const ref = db.collection(getCollectionName('pendingHomeInvites')).doc(email);
+  const doc = await ref.get();
+
+  if (doc.exists) {
+    await ref.update({ homeIds: admin.firestore.FieldValue.arrayUnion(homeId) });
+  } else {
+    await ref.set({ email, homeIds: [homeId], invitedAt: now() });
+  }
+}
+
+async function getPendingHomeInvitesByHomeId(homeId: string): Promise<{ email: string }[]> {
+  const db = getFirestore();
+  const snapshot = await db.collection(getCollectionName('pendingHomeInvites'))
+    .where('homeIds', 'array-contains', homeId)
+    .get();
+
+  return snapshot.docs.map(doc => ({ email: doc.data().email as string }));
+}
+
+export async function applyPendingHomeInvites(userId: string, email: string): Promise<void> {
+  const db = getFirestore();
+  const ref = db.collection(getCollectionName('pendingHomeInvites')).doc(email);
+  const doc = await ref.get();
+
+  if (!doc.exists) return;
+
+  const data = doc.data() as { homeIds: string[] };
+  if (!data.homeIds || data.homeIds.length === 0) return;
+
+  const userRef = db.collection(getCollectionName('users')).doc(userId);
+  await userRef.update({
+    homeInvites: admin.firestore.FieldValue.arrayUnion(...data.homeIds)
+  });
+
+  await ref.delete();
+}
+
 export async function sendHomeInvite(
   homeId: string,
   invitedByUserId: string,
@@ -261,7 +300,6 @@ export async function sendHomeInvite(
   }
 
   const home = homeDoc.data() as Household;
-  const invitedByUser = invitedByUserDoc.data() as User;
 
   // Verify inviter has access to the home
   if (!home.memberIds.includes(invitedByUserId)) {
@@ -271,7 +309,17 @@ export async function sendHomeInvite(
   // Find user by email
   const invitee = await getUserByEmail(inviteeEmail);
   if (!invitee) {
-    return { success: false, message: 'No user found with that email address' };
+    // User hasn't signed up yet — store as a pending invite
+    const pendingRef = db.collection(getCollectionName('pendingHomeInvites')).doc(inviteeEmail);
+    const pendingDoc = await pendingRef.get();
+    const existingHomeIds: string[] = pendingDoc.exists ? (pendingDoc.data()!.homeIds || []) : [];
+
+    if (existingHomeIds.includes(homeId)) {
+      return { success: false, message: 'An invite for this home is already pending for that email' };
+    }
+
+    await addPendingHomeInvite(inviteeEmail, homeId);
+    return { success: true, message: `Invite stored — ${inviteeEmail} will see it when they sign up` };
   }
 
   // Check if already a member
@@ -382,7 +430,7 @@ export async function getOutgoingHomeInvites(homeId: string): Promise<OutgoingIn
     .where('homeInvites', 'array-contains', homeId)
     .get();
 
-  return snapshot.docs.map(doc => {
+  const existing: OutgoingInvite[] = snapshot.docs.map(doc => {
     const user = doc.data() as User;
     return {
       email: user.email,
@@ -391,6 +439,17 @@ export async function getOutgoingHomeInvites(homeId: string): Promise<OutgoingIn
       isPending: false
     };
   });
+
+  // Also include pending invites for users who haven't signed up yet
+  const pendingEmails = await getPendingHomeInvitesByHomeId(homeId);
+  const pending: OutgoingInvite[] = pendingEmails.map(({ email }) => ({
+    email,
+    name: email,
+    userId: email, // use email as identifier for pending invites
+    isPending: true
+  }));
+
+  return [...existing, ...pending];
 }
 
 export async function revokeHomeInvite(homeId: string, userId: string, inviteeUserId: string): Promise<void> {
@@ -406,6 +465,15 @@ export async function revokeHomeInvite(homeId: string, userId: string, inviteeUs
   // Verify revoker has access to the home
   if (!home.memberIds.includes(userId)) {
     throw new Error('You do not have permission to revoke invites for this home');
+  }
+
+  // If inviteeUserId is an email, it's a pending invite (user hasn't signed up yet)
+  if (inviteeUserId.includes('@')) {
+    const pendingRef = db.collection(getCollectionName('pendingHomeInvites')).doc(inviteeUserId);
+    await pendingRef.update({
+      homeIds: admin.firestore.FieldValue.arrayRemove(homeId)
+    });
+    return;
   }
 
   const inviteeRef = db.collection(getCollectionName('users')).doc(inviteeUserId);
@@ -532,6 +600,73 @@ export async function getHousehold(householdId: string): Promise<Household | nul
   }
 
   return householdDoc.data() as Household;
+}
+
+export async function deleteHousehold(homeId: string, requestingUserId: string): Promise<void> {
+  const db = getFirestore();
+  const homeRef = db.collection(getCollectionName('households')).doc(homeId);
+  const homeDoc = await homeRef.get();
+
+  if (!homeDoc.exists) {
+    throw new Error('Home not found');
+  }
+
+  const home = homeDoc.data() as Household;
+
+  if (home.ownerId !== requestingUserId) {
+    throw new Error('Only the owner can delete this home');
+  }
+
+  const batch = db.batch();
+
+  // Remove home from all members' householdIds; clear currentHomeId if set to this home
+  for (const memberId of home.memberIds) {
+    const memberRef = db.collection(getCollectionName('users')).doc(memberId);
+    const memberDoc = await memberRef.get();
+    if (memberDoc.exists) {
+      const updates: Record<string, admin.firestore.FieldValue | null> = {
+        householdIds: admin.firestore.FieldValue.arrayRemove(homeId)
+      };
+      if ((memberDoc.data() as User).currentHomeId === homeId) {
+        updates.currentHomeId = null;
+      }
+      batch.update(memberRef, updates);
+    }
+  }
+
+  // Delete the home
+  batch.delete(homeRef);
+  await batch.commit();
+
+  // Clear homeId from any users who had a pending invite to this home
+  const usersWithInvite = await db.collection(getCollectionName('users'))
+    .where('homeInvites', 'array-contains', homeId)
+    .get();
+
+  if (!usersWithInvite.empty) {
+    const inviteBatch = db.batch();
+    for (const doc of usersWithInvite.docs) {
+      inviteBatch.update(doc.ref, {
+        homeInvites: admin.firestore.FieldValue.arrayRemove(homeId)
+      });
+    }
+    await inviteBatch.commit();
+  }
+
+  // Clean up pending home invites
+  const pendingSnapshot = await db.collection(getCollectionName('pendingHomeInvites'))
+    .where('homeIds', 'array-contains', homeId)
+    .get();
+
+  if (!pendingSnapshot.empty) {
+    const pendingBatch = db.batch();
+    for (const doc of pendingSnapshot.docs) {
+      pendingBatch.update(doc.ref, {
+        homeIds: admin.firestore.FieldValue.arrayRemove(homeId)
+      });
+    }
+    await pendingBatch.commit();
+  }
 }
 
 export async function createHousehold(name: string, ownerId: string): Promise<Household> {

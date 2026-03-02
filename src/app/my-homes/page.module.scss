@@ -455,6 +455,23 @@
   }
 }
 
+.deleteButton {
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $danger;
+  background-color: transparent;
+  border: 1px solid $danger;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    color: white;
+    background-color: $danger;
+  }
+}
+
 .viewSentButton {
   padding: $spacing-sm $spacing-md;
   font-size: 0.95rem;

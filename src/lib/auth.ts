@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { createUser, getUser, updateUserLastLogin, getUserInviteByEmail, acceptUserInvite, hasAnyUsers } from "./firestore-db";
+import { createUser, getUser, updateUserLastLogin, getUserInviteByEmail, acceptUserInvite, hasAnyUsers, applyPendingHomeInvites } from "./firestore-db";
 
 const BOOTSTRAP_EMAIL = "kwak123@gmail.com";
 
@@ -55,6 +55,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           false // New users are never admin
         );
         await acceptUserInvite(user.email);
+        await applyPendingHomeInvites(userId, user.email);
         console.log("Created new user from invite:", dbUser.id);
         return true;
       } catch (error) {

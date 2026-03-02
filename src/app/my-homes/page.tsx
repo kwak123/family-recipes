@@ -252,6 +252,24 @@ export default function MyHomesPage() {
     }
   }
 
+  async function handleDeleteHome(homeId: string, homeName: string) {
+    if (!confirm(`Delete "${homeName}"? This cannot be undone.`)) return;
+
+    try {
+      const response = await fetch(`/api/homes/${homeId}`, { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to delete home');
+        return;
+      }
+
+      await fetchHomes();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete home');
+    }
+  }
+
   if (status === 'loading' || loading) {
     return <LoadingScreen />;
   }
@@ -511,6 +529,14 @@ export default function MyHomesPage() {
                 >
                   {currentHomeId === home.id ? 'Selected' : 'Select'}
                 </button>
+                {session.user.id === home.ownerId && (
+                  <button
+                    onClick={() => handleDeleteHome(home.id, home.name)}
+                    className={styles.deleteButton}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           ))
