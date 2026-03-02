@@ -309,7 +309,7 @@ export async function sendHomeInvite(
   // Find user by email
   const invitee = await getUserByEmail(inviteeEmail);
   if (!invitee) {
-    // User hasn't signed up yet — store as a pending invite
+    // User hasn't signed up yet — store as a pending home invite and also grant platform access
     const pendingRef = db.collection(getCollectionName('pendingHomeInvites')).doc(inviteeEmail);
     const pendingDoc = await pendingRef.get();
     const existingHomeIds: string[] = pendingDoc.exists ? (pendingDoc.data()!.homeIds || []) : [];
@@ -319,7 +319,22 @@ export async function sendHomeInvite(
     }
 
     await addPendingHomeInvite(inviteeEmail, homeId);
-    return { success: true, message: `Invite stored — ${inviteeEmail} will see it when they sign up` };
+
+    // Create a platform invite if one doesn't already exist so the user can sign up
+    const platformInviteRef = db.collection(getCollectionName('userInvites')).doc(inviteeEmail);
+    const platformInviteDoc = await platformInviteRef.get();
+    if (!platformInviteDoc.exists || (platformInviteDoc.data() as UserInvite).status !== 'pending') {
+      const platformInvite: UserInvite = {
+        id: inviteeEmail,
+        email: inviteeEmail,
+        invitedBy: invitedByUserId,
+        invitedAt: now(),
+        status: 'pending'
+      };
+      await platformInviteRef.set(platformInvite);
+    }
+
+    return { success: true, message: `Invite sent — ${inviteeEmail} will receive access when they sign up` };
   }
 
   // Check if already a member
