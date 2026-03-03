@@ -31,7 +31,7 @@ Your response must be a JSON array of recipe objects, where each recipe has this
 }
 
 GUIDELINES:
-- Generate exactly 9 diverse recipes
+- Generate exactly 6 diverse recipes
 - Ingredient names should be lowercase and generic (e.g., "chicken breast" not "Organic Free-Range Chicken")
 - Use standard units: cups, tbsp, tsp, oz, lb, whole, pieces, cloves, pinches, etc.
 - Cook times should be realistic (15-180 minutes)

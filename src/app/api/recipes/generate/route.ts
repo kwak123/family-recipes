@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateRecipesWithGemini } from '@/lib/ai-providers/gemini';
 import { saveRecipes } from '@/lib/firestore-db';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

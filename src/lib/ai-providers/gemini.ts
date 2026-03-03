@@ -22,7 +22,7 @@ export async function generateRecipesWithGemini(
       model: 'gemini-3-flash-preview',
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 16384, // Safe buffer for 9 detailed recipes
+        maxOutputTokens: 8192, // Safe buffer for 6 detailed recipes
       },
     });
 
