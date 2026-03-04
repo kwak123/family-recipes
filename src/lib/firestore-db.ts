@@ -161,12 +161,12 @@ export async function createUser(
     id: googleId,
     email,
     name,
-    picture,
+    ...(picture ? { picture } : {}),
     createdAt: now(),
     lastLoginAt: now(),
     householdIds: [],
     homeInvites: [],
-    isAdmin
+    ...(isAdmin !== undefined ? { isAdmin } : {}),
   };
 
   await db.collection(getCollectionName('users')).doc(user.id).set(user);
@@ -579,6 +579,39 @@ export async function acceptUserInvite(email: string): Promise<void> {
     status: 'accepted',
     acceptedAt: now()
   });
+}
+
+export async function sendPlatformInvite(invitedByUserId: string, email: string): Promise<UserInvite> {
+  const db = getFirestore();
+
+  // Check email not already a user
+  const existingUser = await getUserByEmail(email);
+  if (existingUser) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Check email doesn't have pending invite
+  const inviteRef = db.collection(getCollectionName('userInvites')).doc(email);
+  const existingInviteDoc = await inviteRef.get();
+
+  if (existingInviteDoc.exists) {
+    const existingInvite = existingInviteDoc.data() as UserInvite;
+    if (existingInvite.status === 'pending') {
+      throw new Error('Pending invite already exists for this email');
+    }
+  }
+
+  // Create UserInvite with status: 'pending'
+  const invite: UserInvite = {
+    id: email,
+    email,
+    invitedBy: invitedByUserId,
+    invitedAt: now(),
+    status: 'pending'
+  };
+
+  await inviteRef.set(invite);
+  return invite;
 }
 
 export async function revokeUserInvite(email: string): Promise<void> {

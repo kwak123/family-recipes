@@ -46,6 +46,42 @@ $transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
+// ── Mobile top-bar actions (avatar / sign-in) ─────────────────
+.mobileTopActions {
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+}
+
+.mobileAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid $primary;
+  display: block;
+}
+
+.mobileSignInButton {
+  background-color: $primary;
+  color: white;
+  padding: 0.375rem $spacing-sm;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
 // ── Hamburger button ──────────────────────────────────────────
 .hamburger {
   display: none;

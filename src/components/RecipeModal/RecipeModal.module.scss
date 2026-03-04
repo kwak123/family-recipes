@@ -1,0 +1,186 @@
+// SCSS Variables
+$primary: #2563eb;
+$bg: #ffffff;
+$bg-secondary: #f9fafb;
+$text: #111827;
+$text-secondary: #6b7280;
+$border: #e5e7eb;
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  overflow-y: auto;
+}
+
+.modal {
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: $shadow-lg;
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - #{$spacing-lg} * 2);
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.closeButton {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: $spacing-md $spacing-md 0 auto;
+  display: block;
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: $text-secondary;
+  transition: $transition;
+  z-index: 1;
+
+  &:hover {
+    background-color: $bg-secondary;
+    color: $text;
+  }
+}
+
+.header {
+  padding: $spacing-lg $spacing-xl $spacing-md;
+  border-bottom: 1px solid $border;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text;
+  margin-bottom: $spacing-sm;
+  padding-right: 2.5rem; // keep away from close button
+}
+
+.meta {
+  display: flex;
+  gap: $spacing-md;
+  color: $text-secondary;
+  font-size: 0.875rem;
+  margin-bottom: $spacing-sm;
+
+  span + span::before {
+    content: '• ';
+    margin-right: $spacing-xs;
+  }
+}
+
+.metaItem {
+  color: $text-secondary;
+  font-size: 0.875rem;
+}
+
+.description {
+  color: $text-secondary;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin-bottom: $spacing-md;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.tag {
+  background-color: $bg-secondary;
+  color: $text-secondary;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: calc($border-radius / 2);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.body {
+  padding: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text;
+  padding-bottom: $spacing-xs;
+  border-bottom: 2px solid $primary;
+  display: inline-block;
+}
+
+.ingredientList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ingredientItem {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-xs 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid $bg-secondary;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ingredientQty {
+  color: $text-secondary;
+  min-width: 6rem;
+  flex-shrink: 0;
+}
+
+.ingredientName {
+  color: $text;
+  font-weight: 500;
+}
+
+.instructionList {
+  padding-left: $spacing-lg;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.instructionItem {
+  font-size: 0.9375rem;
+  color: $text;
+  line-height: 1.6;
+  padding-left: $spacing-xs;
+}

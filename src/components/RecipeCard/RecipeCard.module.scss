@@ -87,68 +87,13 @@ $transition: all 0.2s ease;
   font-weight: 500;
 }
 
-.details {
-  margin-top: $spacing-md;
-  padding-top: $spacing-md;
-  border-top: 1px solid $bg-secondary;
-}
-
-.ingredients {
-  margin-bottom: $spacing-lg;
-
-  h4 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: $spacing-sm;
-    color: $text;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      padding: $spacing-xs 0;
-      font-size: 0.875rem;
-      color: $text-secondary;
-      border-bottom: 1px solid $bg-secondary;
-
-      &:last-child {
-        border-bottom: none;
-      }
-    }
-  }
-}
-
-.instructions {
-  h4 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: $spacing-sm;
-    color: $text;
-  }
-
-  ol {
-    padding-left: $spacing-lg;
-    margin: 0;
-
-    li {
-      padding: $spacing-xs 0;
-      font-size: 0.875rem;
-      color: $text-secondary;
-      line-height: 1.5;
-    }
-  }
-}
-
 .actions {
   display: flex;
   gap: $spacing-sm;
   margin-top: $spacing-md;
 }
 
-.expandButton {
+.viewButton {
   flex: 1;
   padding: $spacing-sm $spacing-md;
   border-radius: $border-radius;

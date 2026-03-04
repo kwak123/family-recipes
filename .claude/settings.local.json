@@ -18,7 +18,8 @@
       "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
       "Bash(. \"$NVM_DIR/nvm.sh\")",
       "Bash(nvm use:*)",
-      "Bash(export PATH:*)"
+      "Bash(export PATH:*)",
+      "Bash(git:*)"
     ]
   }
 }

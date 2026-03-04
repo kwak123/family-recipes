@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import RecipeModal from '@/components/RecipeModal/RecipeModal';
 import DevPurge from '@/components/DevPurge/DevPurge';
 import { Recipe } from '@/lib/types';
 import styles from './page.module.scss';
@@ -12,6 +13,7 @@ export default function Home() {
   const [weekPlanIds, setWeekPlanIds] = useState<string[]>([]);
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   // Fetch current week plan and favorites on mount
   useEffect(() => {
@@ -41,14 +43,45 @@ export default function Home() {
 
   const handleGenerate = async () => {
     setLoading(true);
+    setRecipes([]);
     try {
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ preferences })
       });
-      const data = await response.json();
-      setRecipes(data);
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to generate recipes');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const data = JSON.parse(trimmed);
+            if (data.error) {
+              console.error('Stream error:', data.error);
+            } else {
+              setRecipes(prev => [...prev, data]);
+            }
+          } catch {
+            // incomplete line
+          }
+        }
+      }
     } catch (error) {
       console.error('Failed to generate recipes:', error);
     } finally {
@@ -124,6 +157,7 @@ export default function Home() {
                 isInPlan={weekPlanIds.includes(recipe.id)}
                 isFavorited={favoriteRecipeIds.includes(recipe.id)}
                 onFavoriteToggle={handleToggleFavorite}
+                onViewRecipe={setSelectedRecipe}
               />
             ))}
           </div>
@@ -137,6 +171,13 @@ export default function Home() {
 
         {process.env.NODE_ENV === 'development' && <DevPurge />}
       </div>
+
+      {selectedRecipe && (
+        <RecipeModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+        />
+      )}
     </main>
   );
 }

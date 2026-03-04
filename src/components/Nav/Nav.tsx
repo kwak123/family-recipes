@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import styles from './Nav.module.scss';
 
@@ -31,6 +32,24 @@ export default function Nav() {
           <span className={`${styles.bar} ${menuOpen ? styles.barBot : ''}`} />
         </button>
 
+        {/* Mobile-only: avatar or sign-in button in the top bar */}
+        <div className={styles.mobileTopActions}>
+          {status === 'authenticated' && session?.user?.image && (
+            <Image
+              src={session.user.image}
+              alt={session.user.name || 'User'}
+              width={32}
+              height={32}
+              className={styles.mobileAvatar}
+            />
+          )}
+          {status === 'unauthenticated' && (
+            <Link href="/auth/signin" className={styles.mobileSignInButton} onClick={closeMenu}>
+              Sign In
+            </Link>
+          )}
+        </div>
+
         <div className={`${styles.menuWrapper} ${menuOpen ? styles.menuOpen : ''}`}>
           <ul className={styles.links} onClick={closeMenu}>
             <li><Link href="/">Find Recipes</Link></li>
@@ -38,6 +57,7 @@ export default function Nav() {
             <li><Link href="/week-plan">Week Plan</Link></li>
             <li><Link href="/grocery-list">Grocery List</Link></li>
             <li><Link href="/favorites">Favorites</Link></li>
+            <li><Link href="/invite">Invite</Link></li>
           </ul>
 
           <div className={styles.userSection}>

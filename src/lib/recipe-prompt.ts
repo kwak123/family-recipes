@@ -8,7 +8,7 @@ export const RECIPE_GENERATION_SYSTEM_PROMPT = `You are a professional meal plan
 
 IMPORTANT: You must respond with valid JSON only. No markdown, no code blocks, no explanations - just raw JSON.
 
-Your response must be a JSON array of recipe objects, where each recipe has this exact structure:
+Your response must be NDJSON — output each recipe as a single-line JSON object, one per line, with NO array wrapper. Each line must be a complete, self-contained JSON object with this exact structure:
 
 {
   "id": "unique-string-id",
@@ -42,7 +42,7 @@ GUIDELINES:
 - Each recipe ID should be unique (use format: recipe-1, recipe-2, etc. or generate UUIDs)
 
 RESPONSE FORMAT:
-Return ONLY the JSON array. Do not wrap in markdown code blocks. Do not add any text before or after the JSON.`;
+Return ONLY NDJSON. One complete JSON object per line. No array brackets. No markdown. No text before or after.`;
 
 /**
  * Builds the user message based on their input preferences and favorite ingredients

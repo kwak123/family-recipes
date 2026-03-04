@@ -10,6 +10,63 @@ import {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 /**
+ * Stream recipes from Google Gemini one at a time using NDJSON
+ */
+export async function* generateRecipesWithGeminiStream(
+  preferences: string,
+  favoriteIngredients?: string[]
+): AsyncGenerator<Recipe> {
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-3-flash-preview',
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 8192,
+    },
+  });
+
+  const fullPrompt = `${RECIPE_GENERATION_SYSTEM_PROMPT}
+
+${buildUserPrompt(preferences, favoriteIngredients)}
+
+Remember: Return ONLY NDJSON — one complete JSON object per line, no array wrapper, no markdown.`;
+
+  const result = await model.generateContentStream(fullPrompt);
+  let buffer = '';
+
+  for await (const chunk of result.stream) {
+    buffer += chunk.text();
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const recipe = JSON.parse(trimmed);
+        if (validateRecipes([recipe])) {
+          yield recipe as Recipe;
+        }
+      } catch {
+        // incomplete or non-JSON line — skip
+      }
+    }
+  }
+
+  // flush remaining buffer
+  const trimmed = buffer.trim();
+  if (trimmed) {
+    try {
+      const recipe = JSON.parse(trimmed);
+      if (validateRecipes([recipe])) {
+        yield recipe as Recipe;
+      }
+    } catch {
+      console.error('Could not parse final buffer:', buffer);
+    }
+  }
+}
+
+/**
  * Generate recipes using Google Gemini
  */
 export async function generateRecipesWithGemini(

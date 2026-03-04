@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateRecipesWithGemini } from '@/lib/ai-providers/gemini';
+import { generateRecipesWithGeminiStream } from '@/lib/ai-providers/gemini';
 import { saveRecipes } from '@/lib/firestore-db';
 
 export const maxDuration = 60;
@@ -9,37 +9,46 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { preferences, favoriteIngredients, householdId, userId } = body;
 
-    // For now, use default household if not provided
     const defaultHouseholdId = householdId || 'default-household';
     const defaultUserId = userId || 'default-user';
 
-    // Generate recipes using Google Gemini AI
-    const aiRecipes = await generateRecipesWithGemini(
-      preferences || '',
-      favoriteIngredients
-    );
+    const encoder = new TextEncoder();
 
-    // Save recipes to database
-    const recipesToSave = aiRecipes.map(recipe => ({
-      ...recipe,
-      householdId: defaultHouseholdId,
-      source: 'ai' as const,
-      createdBy: defaultUserId,
-      isArchived: false
-    }));
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const recipe of generateRecipesWithGeminiStream(
+            preferences || '',
+            favoriteIngredients
+          )) {
+            const [saved] = await saveRecipes([{
+              ...recipe,
+              householdId: defaultHouseholdId,
+              source: 'ai' as const,
+              createdBy: defaultUserId,
+              isArchived: false,
+            }]);
+            controller.enqueue(encoder.encode(JSON.stringify(saved) + '\n'));
+          }
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : 'Failed to generate recipes';
+          controller.enqueue(encoder.encode(JSON.stringify({ error: msg }) + '\n'));
+        } finally {
+          controller.close();
+        }
+      },
+    });
 
-    const savedRecipes = await saveRecipes(recipesToSave);
-
-    return NextResponse.json(savedRecipes);
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'application/x-ndjson',
+        'Cache-Control': 'no-cache',
+      },
+    });
   } catch (error) {
     console.error('Recipe generation error:', error);
-
-    const errorMessage = error instanceof Error
-      ? error.message
-      : 'Failed to generate recipes';
-
     return NextResponse.json(
-      { error: errorMessage },
+      { error: error instanceof Error ? error.message : 'Failed to generate recipes' },
       { status: 500 }
     );
   }

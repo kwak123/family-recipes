@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Recipe } from '@/lib/types';
 import styles from './RecipeCard.module.scss';
 
@@ -10,6 +9,7 @@ interface RecipeCardProps {
   isInPlan?: boolean;
   isFavorited?: boolean;
   onFavoriteToggle?: (recipeId: string) => void;
+  onViewRecipe?: (recipe: Recipe) => void;
 }
 
 export default function RecipeCard({
@@ -19,12 +19,11 @@ export default function RecipeCard({
   actionStyle = 'primary',
   isInPlan = false,
   isFavorited = false,
-  onFavoriteToggle
+  onFavoriteToggle,
+  onViewRecipe
 }: RecipeCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
-    <div className={`${styles.card} ${isInPlan ? styles.inPlan : ''} ${isExpanded ? styles.expanded : ''}`}>
+    <div className={`${styles.card} ${isInPlan ? styles.inPlan : ''}`}>
       {onFavoriteToggle && (
         <button
           className={`${styles.favoriteButton} ${isFavorited ? styles.favorited : ''}`}
@@ -52,37 +51,15 @@ export default function RecipeCard({
         ))}
       </div>
 
-      {isExpanded && (
-        <div className={styles.details}>
-          <div className={styles.ingredients}>
-            <h4>Ingredients</h4>
-            <ul>
-              {recipe.ingredients.map((ingredient, index) => (
-                <li key={index}>
-                  {ingredient.quantity} {ingredient.unit} {ingredient.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className={styles.instructions}>
-            <h4>Instructions</h4>
-            <ol>
-              {recipe.instructions.map((step, index) => (
-                <li key={index}>{step}</li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      )}
-
       <div className={styles.actions}>
-        <button
-          className={styles.expandButton}
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? '▲ Hide Details' : '▼ Show Recipe'}
-        </button>
+        {onViewRecipe && (
+          <button
+            className={styles.viewButton}
+            onClick={() => onViewRecipe(recipe)}
+          >
+            View Recipe
+          </button>
+        )}
         {actionLabel && (
           <button
             className={`${styles.button} ${styles[actionStyle]}`}
