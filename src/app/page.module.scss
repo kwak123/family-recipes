@@ -186,6 +186,9 @@ $transition: all 0.2s ease;
 }
 
 .tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
   border: 1px solid $border;
@@ -197,6 +200,24 @@ $transition: all 0.2s ease;
   &:hover {
     border-color: #86efac;
     background: #f0fdf4;
+  }
+}
+
+.chipStarIcon {
+  color: #f59e0b;
+  flex-shrink: 0;
+
+  .tagChipSelected & {
+    color: #fde68a;
+  }
+}
+
+.chipCheckIcon {
+  color: #9ca3af;
+  flex-shrink: 0;
+
+  .tagChipSelected & {
+    color: rgba(255, 255, 255, 0.7);
   }
 }
 
