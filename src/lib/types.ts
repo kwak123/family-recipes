@@ -46,6 +46,7 @@ export interface Household {
   };
   favoriteIngredients: string[];
   favoriteRecipeIds: string[];
+  excludedIngredients?: string[];
 }
 
 export interface MealPlanRecipe {

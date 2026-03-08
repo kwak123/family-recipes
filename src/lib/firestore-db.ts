@@ -132,7 +132,8 @@ async function ensureDefaultHousehold(): Promise<Household> {
         preferences: []
       },
       favoriteIngredients: [],
-      favoriteRecipeIds: []
+      favoriteRecipeIds: [],
+      excludedIngredients: []
     };
     await householdRef.set(household);
     return household;
@@ -751,7 +752,8 @@ export async function createHousehold(name: string, ownerId: string): Promise<Ho
       preferences: []
     },
     favoriteIngredients: [],
-    favoriteRecipeIds: []
+    favoriteRecipeIds: [],
+    excludedIngredients: []
   };
 
   const batch = db.batch();
@@ -875,6 +877,52 @@ export async function removeFavoriteIngredient(householdId: string, ingredient: 
 
   await householdRef.update({
     favoriteIngredients: admin.firestore.FieldValue.arrayRemove(normalizedIngredient),
+    updatedAt: now()
+  });
+
+  const updatedDoc = await householdRef.get();
+  return updatedDoc.data() as Household;
+}
+
+export async function addExcludedIngredient(householdId: string, ingredient: string): Promise<Household> {
+  const db = getFirestore();
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
+
+  // Ensure default household exists
+  if (householdId === 'default-household') {
+    const householdDoc = await householdRef.get();
+    if (!householdDoc.exists) {
+      await ensureDefaultHousehold();
+    }
+  }
+
+  const normalizedIngredient = ingredient.toLowerCase().trim();
+
+  await householdRef.update({
+    excludedIngredients: admin.firestore.FieldValue.arrayUnion(normalizedIngredient),
+    updatedAt: now()
+  });
+
+  const updatedDoc = await householdRef.get();
+  return updatedDoc.data() as Household;
+}
+
+export async function removeExcludedIngredient(householdId: string, ingredient: string): Promise<Household> {
+  const db = getFirestore();
+  const householdRef = db.collection(getCollectionName('households')).doc(householdId);
+
+  // Ensure default household exists
+  if (householdId === 'default-household') {
+    const householdDoc = await householdRef.get();
+    if (!householdDoc.exists) {
+      await ensureDefaultHousehold();
+    }
+  }
+
+  const normalizedIngredient = ingredient.toLowerCase().trim();
+
+  await householdRef.update({
+    excludedIngredients: admin.firestore.FieldValue.arrayRemove(normalizedIngredient),
     updatedAt: now()
   });
 

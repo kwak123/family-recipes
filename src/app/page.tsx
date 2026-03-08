@@ -42,29 +42,66 @@ export default function Home() {
   const [showExcludeModal, setShowExcludeModal] = useState(false);
   const [excludeInput, setExcludeInput] = useState('');
 
-  useEffect(() => {
-    const saved = localStorage.getItem('family-recipes-excluded-ingredients');
-    if (saved) {
-      try { setExcludeIngredients(JSON.parse(saved)); } catch {}
+  const fetchExcludeIngredients = async () => {
+    if (!currentHomeId) return;
+    try {
+      const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`);
+      const data = await response.json();
+      setExcludeIngredients(data.excludedIngredients || []);
+    } catch (error) {
+      console.error('Failed to fetch excluded ingredients:', error);
     }
-  }, []);
+  };
 
-  const handleAddExcluded = () => {
+  const handleAddExcluded = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!currentHomeId) return;
     const trimmed = excludeInput.trim().toLowerCase();
     if (!trimmed || excludeIngredients.includes(trimmed)) {
       setExcludeInput('');
       return;
     }
-    const next = [...excludeIngredients, trimmed];
-    setExcludeIngredients(next);
-    localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
+    
+    // Optimistic update
+    const previous = [...excludeIngredients];
+    setExcludeIngredients([...previous, trimmed]);
     setExcludeInput('');
+
+    try {
+      const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredient: trimmed })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setExcludeIngredients(data.excludedIngredients || []);
+    } catch (error) {
+      console.error('Failed to add excluded ingredient:', error);
+      setExcludeIngredients(previous);
+    }
   };
 
-  const handleRemoveExcluded = (ingredient: string) => {
-    const next = excludeIngredients.filter(i => i !== ingredient);
-    setExcludeIngredients(next);
-    localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
+  const handleRemoveExcluded = async (ingredient: string) => {
+    if (!currentHomeId) return;
+    
+    // Optimistic update
+    const previous = [...excludeIngredients];
+    setExcludeIngredients(excludeIngredients.filter(i => i !== ingredient));
+
+    try {
+      const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredient })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setExcludeIngredients(data.excludedIngredients || []);
+    } catch (error) {
+      console.error('Failed to remove excluded ingredient:', error);
+      setExcludeIngredients(previous);
+    }
   };
 
   // Re-fetch whenever the current home changes
@@ -84,6 +121,8 @@ export default function Home() {
     fetchFavorites();
     fetchGroceryIngredients();
     fetchFavoriteIngredients();
+    fetchExcludeIngredients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentHomeId]);
 
   const fetchMealPlanAndTags = async () => {
@@ -463,24 +502,26 @@ export default function Home() {
               <button className={styles.modalClose} onClick={() => setShowExcludeModal(false)}>✕</button>
             </div>
             <p className={styles.excludeSubtitle}>Recipes won&apos;t use these ingredients.</p>
-            <div className={styles.excludeInputRow}>
+            <form 
+              className={styles.excludeInputRow}
+              onSubmit={handleAddExcluded}
+            >
               <input
                 className={styles.excludeInput}
                 type="text"
                 placeholder="e.g. peanuts, gluten..."
                 value={excludeInput}
                 onChange={(e) => setExcludeInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddExcluded()}
                 autoFocus
               />
               <button
+                type="submit"
                 className={styles.excludeAddButton}
-                onClick={handleAddExcluded}
                 disabled={!excludeInput.trim()}
               >
                 Add
               </button>
-            </div>
+            </form>
             {excludeIngredients.length > 0 ? (
               <ul className={styles.excludeList}>
                 {excludeIngredients.map((ing) => (

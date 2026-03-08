@@ -5,6 +5,7 @@ import Link from 'next/link';
 import RecipeCard from '@/components/RecipeCard/RecipeCard';
 import RecipeModal from '@/components/RecipeModal/RecipeModal';
 import { Recipe, FittedIngredient } from '@/lib/types';
+import { useRecipes } from '@/context/RecipesContext';
 import styles from './page.module.scss';
 
 export default function MealPlan() {
@@ -21,6 +22,8 @@ export default function MealPlan() {
   const [showExcludeModal, setShowExcludeModal] = useState(false);
   const [excludeInput, setExcludeInput] = useState('');
 
+  const { currentHomeId } = useRecipes();
+
   // Import state
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
@@ -34,11 +37,20 @@ export default function MealPlan() {
   useEffect(() => {
     fetchMealPlan();
     fetchFavorites();
-    const saved = localStorage.getItem('family-recipes-excluded-ingredients');
-    if (saved) {
-      try { setExcludedIngredients(JSON.parse(saved)); } catch {}
+    fetchExcludeIngredients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentHomeId]);
+
+  const fetchExcludeIngredients = async () => {
+    if (!currentHomeId) return;
+    try {
+      const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`);
+      const data = await response.json();
+      setExcludedIngredients(data.excludedIngredients || []);
+    } catch (error) {
+      console.error('Failed to fetch excluded ingredients:', error);
     }
-  }, []);
+  };
 
   const fetchMealPlan = async () => {
     try {
@@ -81,22 +93,56 @@ export default function MealPlan() {
     }
   };
 
-  const handleAddExcluded = () => {
+  const handleAddExcluded = async (e?: React.FormEvent) => {
+    console.log('excluded', currentHomeId);
+    if (e) e.preventDefault();
+    if (!currentHomeId) return;
     const trimmed = excludeInput.trim().toLowerCase();
     if (!trimmed || excludedIngredients.includes(trimmed)) {
       setExcludeInput('');
       return;
     }
-    const next = [...excludedIngredients, trimmed];
-    setExcludedIngredients(next);
-    localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
+    
+    // Optimistic update
+    const previous = [...excludedIngredients];
+    setExcludedIngredients([...previous, trimmed]);
     setExcludeInput('');
+
+    try {
+      const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredient: trimmed })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setExcludedIngredients(data.excludedIngredients || []);
+    } catch (error) {
+      console.error('Failed to add excluded ingredient:', error);
+      setExcludedIngredients(previous);
+    }
   };
 
-  const handleRemoveExcluded = (ingredient: string) => {
-    const next = excludedIngredients.filter(i => i !== ingredient);
-    setExcludedIngredients(next);
-    localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
+  const handleRemoveExcluded = async (ingredient: string) => {
+    if (!currentHomeId) return;
+    
+    // Optimistic update
+    const previous = [...excludedIngredients];
+    setExcludedIngredients(excludedIngredients.filter(i => i !== ingredient));
+
+    try {
+      const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredient })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setExcludedIngredients(data.excludedIngredients || []);
+    } catch (error) {
+      console.error('Failed to remove excluded ingredient:', error);
+      setExcludedIngredients(previous);
+    }
   };
 
   const handleSimplify = async () => {
@@ -253,28 +299,30 @@ export default function MealPlan() {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1>Meal Plan</h1>
-          {recipes.length > 0 && (
-            <div className={styles.headerActions}>
-              <button
-                className={styles.excludeButton}
-                onClick={() => setShowExcludeModal(true)}
-              >
-                {excludedIngredients.length > 0
-                  ? `Exclude ${excludedIngredients.length} ingredient${excludedIngredients.length !== 1 ? 's' : ''}`
-                  : 'Exclude Ingredients'}
-              </button>
-              <button
-                className={styles.simplifyButton}
-                onClick={handleSimplify}
-                disabled={isSimplifying}
-              >
-                {isSimplifying ? 'Simplifying...' : 'Preview Simplified'}
-              </button>
-              <Link href="/grocery-list" className={styles.groceryLink}>
-                View Grocery List →
-              </Link>
-            </div>
-          )}
+          <div className={styles.headerActions}>
+            <button
+              className={styles.excludeButton}
+              onClick={() => setShowExcludeModal(true)}
+            >
+              {excludedIngredients.length > 0
+                ? `Exclude ${excludedIngredients.length} ingredient${excludedIngredients.length !== 1 ? 's' : ''}`
+                : 'Exclude Ingredients'}
+            </button>
+            {recipes.length > 0 && (
+              <>
+                <button
+                  className={styles.simplifyButton}
+                  onClick={handleSimplify}
+                  disabled={isSimplifying}
+                >
+                  {isSimplifying ? 'Simplifying...' : 'Preview Simplified'}
+                </button>
+                <Link href="/grocery-list" className={styles.groceryLink}>
+                  View Grocery List →
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
         <div className={styles.importBar}>
@@ -344,24 +392,26 @@ export default function MealPlan() {
             <p className={styles.excludeModalSubtitle}>
               These ingredients will be avoided when simplifying your meal plan.
             </p>
-            <div className={styles.excludeInputRow}>
+            <form 
+              className={styles.excludeInputRow}
+              onSubmit={handleAddExcluded}
+            >
               <input
                 className={styles.excludeInput}
                 type="text"
                 placeholder="Add ingredient to exclude..."
                 value={excludeInput}
                 onChange={e => setExcludeInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddExcluded()}
                 autoFocus
               />
               <button
+                type="submit"
                 className={styles.excludeAddButton}
-                onClick={handleAddExcluded}
                 disabled={!excludeInput.trim()}
               >
                 Add
               </button>
-            </div>
+            </form>
             {excludedIngredients.length > 0 && (
               <div className={styles.excludedTags}>
                 {excludedIngredients.map(ing => (

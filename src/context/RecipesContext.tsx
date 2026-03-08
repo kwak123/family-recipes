@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Recipe } from '@/lib/types';
 
 interface RecipesContextValue {
@@ -19,6 +19,27 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [preferences, setPreferences] = useState('');
   const [currentHomeId, setCurrentHomeId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/homes')
+      .then(res => res.json())
+      .then(data => {
+        if (data.currentHomeId) {
+          setCurrentHomeId(data.currentHomeId);
+        } else if (data.homes && data.homes.length > 0) {
+          setCurrentHomeId(data.homes[0].id);
+        }
+      })
+      .catch(console.error);
+
+    const handleHouseholdChanged = (e: Event) => {
+      const customEvent = e as CustomEvent<{ homeId: string }>;
+      setCurrentHomeId(customEvent.detail.homeId);
+    };
+
+    window.addEventListener('householdChanged', handleHouseholdChanged);
+    return () => window.removeEventListener('householdChanged', handleHouseholdChanged);
+  }, []);
 
   function appendRecipe(recipe: Recipe) {
     setRecipes(prev => [...prev, recipe]);
