@@ -1,0 +1,801 @@
+// SCSS Variables
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$success: #16a34a;
+$text-secondary: #6b7280;
+$bg: #ffffff;
+$bg-secondary: #f9fafb;
+$border: #e5e7eb;
+$text: #111827;
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.75rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+$border-radius: 0.5rem;
+$transition: all 0.2s ease;
+
+.main {
+  min-height: calc(100vh - 64px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+}
+
+.excludeButton {
+  padding: $spacing-xs $spacing-md;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #b91c1c;
+  }
+}
+
+.simplifyButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: transparent;
+  color: $primary;
+  border: 2px solid $primary;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background-color: $primary;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.groceryLink {
+  background-color: $success;
+  color: white;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius;
+  font-weight: 600;
+  transition: $transition;
+
+  &:hover {
+    background-color: #15803d;
+  }
+}
+
+// Import bar
+.importBar {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+}
+
+.importInput {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  font-size: 0.9375rem;
+  color: $text;
+  background: $bg;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.importButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: transparent;
+  color: $primary;
+  border: 2px solid $primary;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background-color: $primary;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.importError {
+  font-size: 0.8125rem;
+  color: #dc2626;
+  margin-top: 0;
+  margin-bottom: $spacing-md;
+}
+
+// Import modal
+.importBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
+  overflow-y: auto;
+}
+
+.importModal {
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  padding: $spacing-xl;
+}
+
+.importModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
+
+  h2 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.importModalSubtitle {
+  color: $text-secondary;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.importTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.importTag {
+  background: #eff6ff;
+  color: $primary;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem $spacing-xs;
+  border-radius: 9999px;
+}
+
+.importMeta {
+  display: flex;
+  gap: $spacing-xs;
+  font-size: 0.875rem;
+  color: $text-secondary;
+  align-items: center;
+}
+
+.importSection {
+  h3 {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.importIngredients {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: $text;
+  text-transform: capitalize;
+}
+
+.importInstructions {
+  padding-left: 1.25rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  font-size: 0.875rem;
+  color: $text;
+  line-height: 1.5;
+}
+
+.importPhasePreview {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.importPhaseFitting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-xl 0;
+  color: $text-secondary;
+  font-size: 0.9375rem;
+}
+
+.importSpinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid $border;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.importPhaseResult {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.fitResultNote {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  line-height: 1.5;
+}
+
+.fitTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    text-align: left;
+    font-weight: 600;
+    color: $text-secondary;
+    font-size: 0.75rem;
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 2px solid $border;
+  }
+
+  td {
+    padding: $spacing-xs $spacing-sm;
+    vertical-align: middle;
+    border-bottom: 1px solid $border;
+  }
+}
+
+.fitRowConverted {
+  background-color: #f0fdf4;
+}
+
+.fitRowNoChange {
+  opacity: 0.7;
+}
+
+.fitArrow {
+  color: $text-secondary;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.fitNoSuggestion {
+  color: $text-secondary;
+}
+
+.fitReason {
+  display: block;
+  font-size: 0.75rem;
+  color: $text-secondary;
+  margin-top: 0.125rem;
+}
+
+.fitToggle {
+  padding: 0.25rem $spacing-sm;
+  border-radius: 9999px;
+  border: 1px solid $border;
+  background: $bg-secondary;
+  color: $text-secondary;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+.fitToggleOn {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+
+  &:hover {
+    border-color: #15803d;
+    color: #15803d;
+  }
+}
+
+.fitKeep {
+  font-size: 0.75rem;
+  color: $text-secondary;
+}
+
+.importActions {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $border;
+  flex-wrap: wrap;
+}
+
+.fitButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: transparent;
+  color: $primary;
+  border: 2px solid $primary;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary;
+    color: white;
+  }
+}
+
+.importCommitButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: $primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Simplify preview modal
+.simplifyBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
+  overflow-y: auto;
+}
+
+.simplifyModal {
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  padding: $spacing-xl;
+}
+
+.simplifyModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
+
+  h2 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.simplifyModalSubtitle {
+  color: $text-secondary;
+  font-size: 0.9375rem;
+}
+
+.simplifyCloseButton {
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  color: $text-secondary;
+  flex-shrink: 0;
+  transition: $transition;
+
+  &:hover {
+    background-color: $bg-secondary;
+    color: $text;
+  }
+}
+
+.simplifyGrid {
+  display: grid;
+  gap: $spacing-lg;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.simplifyCard {
+  background: $bg-secondary;
+  border-radius: $border-radius;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  border: 1px solid $border;
+}
+
+.simplifyCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-sm;
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text;
+  }
+}
+
+.simplifyBadge {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem $spacing-xs;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.simplifyDescription {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  line-height: 1.5;
+}
+
+.simplifyIngredients {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: $text;
+  border-top: 1px solid $border;
+  padding-top: $spacing-sm;
+
+  li {
+    padding: 0.125rem 0;
+    text-transform: capitalize;
+  }
+}
+
+.simplifyModalFooter {
+  border-top: 1px solid $border;
+  padding-top: $spacing-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.simplifyFooterNote {
+  font-size: 0.875rem;
+  color: $text-secondary;
+}
+
+.simplifyFooterActions {
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+.simplifyDismissButton {
+  padding: $spacing-sm $spacing-lg;
+  background: transparent;
+  color: $text-secondary;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background: $bg-secondary;
+    color: $text;
+  }
+}
+
+.simplifyCommitButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: $primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.recipesGrid {
+  display: grid;
+  gap: $spacing-lg;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.loading {
+  text-align: center;
+  color: $text-secondary;
+  padding: $spacing-2xl;
+  font-size: 1.125rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-2xl;
+
+  p {
+    color: $text-secondary;
+    font-size: 1.125rem;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.homeLink {
+  display: inline-block;
+  background-color: $primary;
+  color: white;
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $border-radius;
+  font-weight: 600;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
+// Exclude ingredients modal
+.excludeBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.excludeModal {
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: $spacing-xl;
+}
+
+.excludeModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $text;
+  }
+}
+
+.excludeModalSubtitle {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.excludeInputRow {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.excludeInput {
+  flex: 1;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  font-size: 0.9375rem;
+  color: $text;
+  background: $bg;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  }
+}
+
+.excludeAddButton {
+  padding: $spacing-sm $spacing-md;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background-color: #b91c1c;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.excludedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.excludedTag {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.25rem $spacing-sm;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.excludedTagRemove {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  transition: $transition;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.excludeEmpty {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  text-align: center;
+  padding: $spacing-sm 0;
+  margin: 0;
+}

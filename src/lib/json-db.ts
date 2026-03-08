@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Database, User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite, PendingHomeInvite } from './types';
+import { Database, User, Household, Recipe, MealPlan, MealPlanRecipe, GroceryItem, UserInvite, PendingHomeInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
@@ -13,7 +13,7 @@ function getEmptyDatabase(): Database {
     users: {},
     households: {},
     recipes: {},
-    weekPlans: {},
+    mealPlans: {},
     userInvites: {},
     pendingHomeInvites: {}
   };
@@ -813,26 +813,26 @@ export function archiveRecipe(recipeId: string): Recipe {
 }
 
 // ============================================================================
-// WEEK PLAN OPERATIONS
+// MEAL PLAN OPERATIONS
 // ============================================================================
 
-export function getWeekPlan(householdId: string, weekStartDate: string): WeekPlan | null {
+export function getMealPlan(householdId: string, weekStartDate: string): MealPlan | null {
   const db = readDatabase();
-  return Object.values(db.weekPlans).find(
+  return Object.values(db.mealPlans).find(
     plan => plan.householdId === householdId && plan.weekStartDate === weekStartDate
   ) || null;
 }
 
-export function getCurrentWeekPlan(householdId: string): WeekPlan | null {
+export function getCurrentMealPlan(householdId: string): MealPlan | null {
   const weekStart = getCurrentWeekStart();
-  return getWeekPlan(householdId, weekStart);
+  return getMealPlan(householdId, weekStart);
 }
 
-export function createWeekPlan(householdId: string, weekStartDate: string): WeekPlan {
+export function createMealPlan(householdId: string, weekStartDate: string): MealPlan {
   const db = readDatabase();
   const weekEndDate = getWeekEnd(weekStartDate);
 
-  const weekPlan: WeekPlan = {
+  const mealPlan: MealPlan = {
     id: generateId('weekplan'),
     householdId,
     weekStartDate,
@@ -843,23 +843,23 @@ export function createWeekPlan(householdId: string, weekStartDate: string): Week
     updatedAt: now()
   };
 
-  db.weekPlans[weekPlan.id] = weekPlan;
+  db.mealPlans[mealPlan.id] = mealPlan;
   writeDatabase(db);
-  return weekPlan;
+  return mealPlan;
 }
 
-export function addRecipeToWeekPlan(
+export function addRecipeToMealPlan(
   householdId: string,
   recipeId: string,
-  dayOfWeek: WeekPlanRecipe['dayOfWeek'],
-  mealType: WeekPlanRecipe['mealType'],
+  dayOfWeek: MealPlanRecipe['dayOfWeek'],
+  mealType: MealPlanRecipe['mealType'],
   addedBy: string
-): WeekPlan {
+): MealPlan {
   const weekStart = getCurrentWeekStart();
-  let weekPlan = getWeekPlan(householdId, weekStart);
+  let mealPlan = getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    weekPlan = createWeekPlan(householdId, weekStart);
+  if (!mealPlan) {
+    mealPlan = createMealPlan(householdId, weekStart);
   }
 
   // Check if recipe exists
@@ -868,8 +868,8 @@ export function addRecipeToWeekPlan(
     throw new Error('Recipe not found');
   }
 
-  // Add recipe to week plan
-  weekPlan.recipes.push({
+  // Add recipe to meal plan
+  mealPlan.recipes.push({
     recipeId,
     dayOfWeek,
     mealType,
@@ -878,73 +878,73 @@ export function addRecipeToWeekPlan(
   });
 
   // Regenerate grocery list
-  const recipeIds = weekPlan.recipes.map(r => r.recipeId);
+  const recipeIds = mealPlan.recipes.map(r => r.recipeId);
   const recipes = recipeIds.map(id => getRecipe(id)).filter(r => r !== null) as Recipe[];
-  weekPlan.generatedGroceryList = aggregateIngredients(recipes);
+  mealPlan.generatedGroceryList = aggregateIngredients(recipes);
 
-  weekPlan.updatedAt = now();
+  mealPlan.updatedAt = now();
 
   const db = readDatabase();
-  db.weekPlans[weekPlan.id] = weekPlan;
+  db.mealPlans[mealPlan.id] = mealPlan;
   writeDatabase(db);
 
-  return weekPlan;
+  return mealPlan;
 }
 
-export function removeRecipeFromWeekPlan(
+export function removeRecipeFromMealPlan(
   householdId: string,
   recipeId: string
-): WeekPlan {
+): MealPlan {
   const weekStart = getCurrentWeekStart();
-  const weekPlan = getWeekPlan(householdId, weekStart);
+  const mealPlan = getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    throw new Error('Week plan not found');
+  if (!mealPlan) {
+    throw new Error('Meal plan not found');
   }
 
   // Remove recipe
-  weekPlan.recipes = weekPlan.recipes.filter(r => r.recipeId !== recipeId);
+  mealPlan.recipes = mealPlan.recipes.filter(r => r.recipeId !== recipeId);
 
   // Regenerate grocery list
-  const recipeIds = weekPlan.recipes.map(r => r.recipeId);
+  const recipeIds = mealPlan.recipes.map(r => r.recipeId);
   const recipes = recipeIds.map(id => getRecipe(id)).filter(r => r !== null) as Recipe[];
-  weekPlan.generatedGroceryList = aggregateIngredients(recipes);
+  mealPlan.generatedGroceryList = aggregateIngredients(recipes);
 
-  weekPlan.updatedAt = now();
+  mealPlan.updatedAt = now();
 
   const db = readDatabase();
-  db.weekPlans[weekPlan.id] = weekPlan;
+  db.mealPlans[mealPlan.id] = mealPlan;
   writeDatabase(db);
 
-  return weekPlan;
+  return mealPlan;
 }
 
 export function updateGroceryItemChecked(
   householdId: string,
   ingredientName: string,
   checked: boolean
-): WeekPlan {
+): MealPlan {
   const weekStart = getCurrentWeekStart();
-  const weekPlan = getWeekPlan(householdId, weekStart);
+  const mealPlan = getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    throw new Error('Week plan not found');
+  if (!mealPlan) {
+    throw new Error('Meal plan not found');
   }
 
-  const item = weekPlan.generatedGroceryList.find(
+  const item = mealPlan.generatedGroceryList.find(
     i => i.name.toLowerCase() === ingredientName.toLowerCase()
   );
 
   if (item) {
     item.checkedOff = checked;
-    weekPlan.updatedAt = now();
+    mealPlan.updatedAt = now();
 
     const db = readDatabase();
-    db.weekPlans[weekPlan.id] = weekPlan;
+    db.mealPlans[mealPlan.id] = mealPlan;
     writeDatabase(db);
   }
 
-  return weekPlan;
+  return mealPlan;
 }
 
 // ============================================================================
@@ -981,6 +981,6 @@ export function getDatabaseStats() {
     users: Object.keys(db.users).length,
     households: Object.keys(db.households).length,
     recipes: Object.keys(db.recipes).length,
-    weekPlans: Object.keys(db.weekPlans).length
+    mealPlans: Object.keys(db.mealPlans).length
   };
 }

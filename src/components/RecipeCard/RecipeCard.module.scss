@@ -27,7 +27,6 @@ $transition: all 0.2s ease;
   transition: $transition;
   display: flex;
   flex-direction: column;
-  position: relative;
 
   &:hover {
     box-shadow: $shadow-lg;
@@ -39,6 +38,16 @@ $transition: all 0.2s ease;
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-xs;
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+
   h3 {
     margin-bottom: $spacing-xs;
   }
@@ -49,7 +58,6 @@ $transition: all 0.2s ease;
   gap: $spacing-md;
   color: $text-secondary;
   font-size: 0.875rem;
-  margin-bottom: $spacing-md;
 
   span {
     &::before {
@@ -159,8 +167,7 @@ $transition: all 0.2s ease;
 }
 
 .favoriteButton {
-  position: absolute;
-  right: $spacing-md;
+  flex-shrink: 0;
   background: transparent;
   border: none;
   font-size: 1.5rem;

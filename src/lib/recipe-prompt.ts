@@ -50,12 +50,13 @@ Return ONLY NDJSON. One complete JSON object per line. No array brackets. No mar
 export function buildUserPrompt(
   preferences: string,
   favoriteIngredients?: string[],
-  groceryIngredients?: string[]
+  groceryIngredients?: string[],
+  selectedTags?: string[]
 ): string {
   const cleanPreferences = preferences.trim();
   let prompt = '';
 
-  if (!cleanPreferences && (!favoriteIngredients || favoriteIngredients.length === 0) && (!groceryIngredients || groceryIngredients.length === 0)) {
+  if (!cleanPreferences && (!favoriteIngredients || favoriteIngredients.length === 0) && (!groceryIngredients || groceryIngredients.length === 0) && (!selectedTags || selectedTags.length === 0)) {
     return "Generate a diverse set of recipes suitable for a typical week. Include a mix of vegetarian and meat dishes, quick meals and slower options, various cuisines.";
   }
 
@@ -75,6 +76,11 @@ export function buildUserPrompt(
     prompt += `\n\nFAVORITE INGREDIENTS: Try to incorporate these ingredients the household loves: ${favoriteIngredients.join(', ')}. Prioritize recipes that use one or more of these.`;
   }
 
+  // Add selected tags filter
+  if (selectedTags && selectedTags.length > 0) {
+    prompt += `\n\nTAG FILTER: Generate recipes that match these tags: ${selectedTags.join(', ')}. All or most recipes should fit at least one of these tags.`;
+  }
+
   prompt += `\n\nPlease ensure the recipes match these preferences while maintaining variety in cooking time, ingredients, and preparation style.`;
 
   return prompt;
@@ -91,7 +97,7 @@ Your response must be NDJSON — output each simplified recipe as a single-line 
 
 For each input recipe, return a simplified version that:
 - Keeps the SAME recipe id, name, and general meal concept
-- Reduces ingredients to at most 8 per recipe, using common pantry staples
+- Consolidates ingredients to maximize sharing across recipes — substitute where culinarily sensible, using pantry staples and ingredients already present in other recipes
 - Shares ingredients with other recipes in the plan (e.g., if two recipes both use onion, that's better)
 - Adjusts instructions to match the simplified ingredient list (keep 4-6 steps)
 - Maintains realistic cook times and servings
@@ -101,6 +107,82 @@ Use the same JSON structure as the input recipes. Return one simplified recipe p
 RESPONSE FORMAT:
 Return ONLY NDJSON. One complete JSON object per line. No array brackets. No markdown. No text before or after.`;
 
+
+/**
+ * System prompt for importing a recipe from a URL's page text
+ */
+export const URL_IMPORT_SYSTEM_PROMPT = `You are a recipe parser. Given raw text extracted from a recipe webpage, parse it into a single structured Recipe JSON object.
+
+IMPORTANT: You must respond with valid JSON only. No markdown, no code blocks, no explanations — just raw JSON.
+
+Return a single JSON object with this exact structure:
+
+{
+  "id": "imported-recipe",
+  "name": "Recipe Name",
+  "description": "Brief 1-2 sentence description",
+  "cookTimeMinutes": number,
+  "servings": number,
+  "ingredients": [
+    {
+      "name": "ingredient name (lowercase)",
+      "quantity": number,
+      "unit": "unit of measurement"
+    }
+  ],
+  "instructions": [
+    "Step 1 instruction",
+    "Step 2 instruction"
+  ],
+  "tags": ["tag1", "tag2"]
+}
+
+GUIDELINES:
+- Extract ALL ingredients listed in the recipe
+- Ingredient names must be lowercase and generic (e.g., "chicken breast" not "Organic Free-Range Chicken")
+- Use standard units: cups, tbsp, tsp, oz, lb, whole, pieces, cloves, pinches, etc.
+- If quantity is unclear, use a reasonable default (e.g., 1 for "some", 0.25 for "a pinch")
+- Keep instructions concise: 1-2 sentences per step, 4-8 steps total
+- Tags should describe diet type, cuisine, cooking method, etc.
+- If cook time is not specified, estimate based on the instructions
+- If servings are not specified, default to 4
+
+RESPONSE FORMAT:
+Return ONLY a single JSON object. No array. No markdown. No text before or after.`;
+
+/**
+ * System prompt for fitting an imported recipe's ingredients to the existing meal plan
+ */
+export const FIT_MEAL_PLAN_SYSTEM_PROMPT = `You are a meal planning optimization assistant. Given an imported recipe and a list of existing meal plan recipes, suggest ingredient substitutions that minimize the total number of unique ingredients across the meal plan.
+
+IMPORTANT: You must respond with valid JSON only. No markdown, no code blocks, no explanations.
+
+For each ingredient in the imported recipe, decide if it can be substituted with a culinarily similar ingredient already in the meal plan. Only suggest substitutions that make culinary sense (e.g., substitute "scallions" with "yellow onion", but never substitute "chicken" with "tofu").
+
+Return a JSON array where each element is:
+{
+  "original": { "name": "ingredient name", "quantity": number, "unit": "unit" },
+  "suggested": { "name": "substitute name", "quantity": number, "unit": "unit" },
+  "converted": true,
+  "reason": "brief reason"
+}
+
+Or, if no sensible substitution exists:
+{
+  "original": { "name": "ingredient name", "quantity": number, "unit": "unit" },
+  "suggested": null,
+  "converted": false,
+  "reason": null
+}
+
+GUIDELINES:
+- "converted" = true only when "suggested" is a different ingredient from "original"
+- The quantity and unit in "suggested" should be adjusted appropriately
+- Only suggest substitutions for ingredients already present in the meal plan recipes
+- Never suggest a substitution that would fundamentally change the dish
+
+RESPONSE FORMAT:
+Return ONLY a JSON array. No markdown. No text before or after.`;
 
 /**
  * Example of how to call an AI API (Claude, GPT, etc.)

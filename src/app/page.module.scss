@@ -31,11 +31,199 @@ $transition: all 0.2s ease;
   }
 }
 
-.groceryHint {
-  font-size: 0.8125rem;
-  color: #16a34a;
+.filtersRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
   margin-bottom: $spacing-xl;
+}
+
+.filterChipLoading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f9fafb;
+  border: 1px solid $border;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.filterSpinner {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1.5px solid #d1d5db;
+  border-top-color: #6b7280;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.filterChip {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  padding: 0.25rem 0.625rem 0.25rem 0.75rem;
+}
+
+.filterCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: #15803d;
   font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+
+  input[type='checkbox'] {
+    width: 0.9rem;
+    height: 0.9rem;
+    accent-color: #16a34a;
+    cursor: pointer;
+  }
+}
+
+.funnelButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  color: #16a34a;
+  cursor: pointer;
+  padding: 0.125rem 0.25rem;
+  line-height: 1;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #15803d;
+  }
+}
+
+.funnelButtonWithLabel {
+  color: #15803d;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: $border-radius;
+  padding: $spacing-lg;
+  width: min(380px, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.25rem;
+  line-height: 1;
+
+  &:hover {
+    color: #111827;
+  }
+}
+
+.ingredientsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    font-size: 0.9rem;
+    padding: 0.375rem 0;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.tagGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tagChip {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid $border;
+  background: #f9fafb;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+}
+
+.tagChipSelected {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: white;
+
+  &:hover {
+    background: #15803d;
+    border-color: #15803d;
+  }
+}
+
+.clearTags {
+  margin-top: $spacing-md;
+  background: none;
+  border: none;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+
+  &:hover {
+    color: #374151;
+  }
 }
 
 .input {

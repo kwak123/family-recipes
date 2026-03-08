@@ -122,7 +122,9 @@ export default function MyHomesPage() {
       }
 
       const data = await response.json();
-      setHomes([...homes, data.home]);
+      const updated = [...homes, data.home];
+      setHomes(updated);
+      setFilteredHomes(updated);
       setNewHomeName('');
       setIsAddingHome(false);
     } catch (err) {

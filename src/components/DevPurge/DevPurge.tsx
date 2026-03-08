@@ -57,7 +57,7 @@ export default function DevPurge() {
         <div className={styles.stats}>
           <p>Households: {stats.households}</p>
           <p>Recipes: {stats.recipes}</p>
-          <p>Week Plans: {stats.weekPlans}</p>
+          <p>Meal Plans: {stats.mealPlans}</p>
         </div>
       )}
 

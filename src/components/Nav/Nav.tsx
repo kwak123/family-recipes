@@ -54,7 +54,7 @@ export default function Nav() {
           <ul className={styles.links} onClick={closeMenu}>
             <li><Link href="/">Find Recipes</Link></li>
             <li><Link href="/my-homes">My Homes</Link></li>
-            <li><Link href="/week-plan">Meal Plan</Link></li>
+            <li><Link href="/meal-plan">Meal Plan</Link></li>
             <li><Link href="/grocery-list">Grocery List</Link></li>
             <li><Link href="/favorites">Favorites</Link></li>
             <li><Link href="/invite">Invite</Link></li>

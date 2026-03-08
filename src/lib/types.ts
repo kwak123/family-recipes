@@ -48,7 +48,7 @@ export interface Household {
   favoriteRecipeIds: string[];
 }
 
-export interface WeekPlanRecipe {
+export interface MealPlanRecipe {
   recipeId: string;
   dayOfWeek: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -63,12 +63,12 @@ export interface GroceryItem {
   checkedOff?: boolean;
 }
 
-export interface WeekPlan {
+export interface MealPlan {
   id: string;
   householdId: string;
   weekStartDate: string; // "2026-02-10"
   weekEndDate: string; // "2026-02-16"
-  recipes: WeekPlanRecipe[];
+  recipes: MealPlanRecipe[];
   generatedGroceryList: GroceryItem[];
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
@@ -91,12 +91,19 @@ export interface PendingHomeInvite {
   invitedAt: string; // ISO timestamp
 }
 
+export interface FittedIngredient {
+  original: Ingredient;
+  suggested: Ingredient | null;
+  converted: boolean;
+  reason?: string | null;
+}
+
 // Database collections structure
 export interface Database {
   users: { [id: string]: User };
   households: { [id: string]: Household };
   recipes: { [id: string]: Recipe };
-  weekPlans: { [id: string]: WeekPlan };
+  mealPlans: { [id: string]: MealPlan };
   userInvites: { [id: string]: UserInvite };
   pendingHomeInvites: { [id: string]: PendingHomeInvite };
 }

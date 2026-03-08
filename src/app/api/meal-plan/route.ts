@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  getCurrentWeekPlan,
-  addRecipeToWeekPlan,
-  removeRecipeFromWeekPlan,
+  getCurrentMealPlan,
+  addRecipeToMealPlan,
+  removeRecipeFromMealPlan,
   getRecipe
 } from '@/lib/firestore-db';
 
@@ -11,9 +11,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const householdId = searchParams.get('householdId') || 'default-household';
 
-    const weekPlan = await getCurrentWeekPlan(householdId);
+    const mealPlan = await getCurrentMealPlan(householdId);
 
-    if (!weekPlan) {
+    if (!mealPlan) {
       return NextResponse.json({
         id: null,
         householdId,
@@ -24,20 +24,20 @@ export async function GET(request: NextRequest) {
 
     // Get full recipe details
     const recipesWithDetails = await Promise.all(
-      weekPlan.recipes.map(async wr => {
+      mealPlan.recipes.map(async wr => {
         const recipe = await getRecipe(wr.recipeId);
         return { ...wr, recipe };
       })
     );
 
     return NextResponse.json({
-      ...weekPlan,
+      ...mealPlan,
       recipes: recipesWithDetails
     });
   } catch (error) {
-    console.error('Week plan fetch error:', error);
+    console.error('Meal plan fetch error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch week plan' },
+      { error: 'Failed to fetch meal plan' },
       { status: 500 }
     );
   }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const defaultDay = dayOfWeek || 'monday';
     const defaultMeal = mealType || 'dinner';
 
-    const updatedPlan = await addRecipeToWeekPlan(
+    const updatedPlan = await addRecipeToMealPlan(
       defaultHouseholdId,
       recipeId,
       defaultDay,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     console.error('Add recipe error:', error);
     const errorMessage = error instanceof Error
       ? error.message
-      : 'Failed to add recipe to week plan';
+      : 'Failed to add recipe to meal plan';
 
     return NextResponse.json(
       { error: errorMessage },
@@ -107,7 +107,7 @@ export async function DELETE(request: NextRequest) {
 
     const defaultHouseholdId = householdId || 'default-household';
 
-    const updatedPlan = await removeRecipeFromWeekPlan(defaultHouseholdId, recipeId);
+    const updatedPlan = await removeRecipeFromMealPlan(defaultHouseholdId, recipeId);
 
     // Get full recipe details
     const recipesWithDetails = await Promise.all(
@@ -124,7 +124,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Remove recipe error:', error);
     return NextResponse.json(
-      { error: 'Failed to remove recipe from week plan' },
+      { error: 'Failed to remove recipe from meal plan' },
       { status: 500 }
     );
   }

@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { simplifyMealPlanWithGemini } from '@/lib/ai-providers/gemini';
-import { updateRecipe, regenerateWeekPlanGroceryList } from '@/lib/firestore-db';
+import { updateRecipe, regenerateMealPlanGroceryList } from '@/lib/firestore-db';
 import { Recipe } from '@/lib/types';
 
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const { recipes } = await request.json() as { recipes: Recipe[] };
+    const { recipes, excludedIngredients } = await request.json() as { recipes: Recipe[]; excludedIngredients?: string[] };
 
     if (!Array.isArray(recipes) || recipes.length === 0) {
       return NextResponse.json({ error: 'No recipes provided' }, { status: 400 });
     }
 
-    const simplified = await simplifyMealPlanWithGemini(recipes);
+    const simplified = await simplifyMealPlanWithGemini(recipes, excludedIngredients);
     return NextResponse.json({ recipes: simplified });
   } catch (error) {
     console.error('Simplify error:', error);
@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest) {
     );
 
     // Regenerate the grocery list now that ingredients have changed
-    await regenerateWeekPlanGroceryList(hid);
+    await regenerateMealPlanGroceryList(hid);
 
     return NextResponse.json({ recipes: updated });
   } catch (error) {

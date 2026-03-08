@@ -76,7 +76,7 @@ export default function GroceryList() {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1>Grocery List</h1>
-          <Link href="/week-plan" className={styles.backLink}>
+          <Link href="/meal-plan" className={styles.backLink}>
             ← Back to Meal Plan
           </Link>
         </div>

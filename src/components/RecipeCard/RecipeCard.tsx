@@ -26,21 +26,23 @@ export default function RecipeCard({
 }: RecipeCardProps) {
   return (
     <div className={`${styles.card} ${isInPlan ? styles.inPlan : ''}`}>
-      {onFavoriteToggle && (
-        <button
-          className={`${styles.favoriteButton} ${isFavorited ? styles.favorited : ''}`}
-          onClick={() => onFavoriteToggle(recipe.id)}
-          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          {isFavorited ? '★' : '☆'}
-        </button>
-      )}
       <div className={styles.header}>
-        <h3>{recipe.name}</h3>
-        <div className={styles.meta}>
-          <span>{recipe.cookTimeMinutes} min</span>
-          <span>{recipe.servings} servings</span>
+        <div className={styles.headerText}>
+          <h3>{recipe.name}</h3>
+          <div className={styles.meta}>
+            <span>{recipe.cookTimeMinutes} min</span>
+            <span>{recipe.servings} servings</span>
+          </div>
         </div>
+        {onFavoriteToggle && (
+          <button
+            className={`${styles.favoriteButton} ${isFavorited ? styles.favorited : ''}`}
+            onClick={() => onFavoriteToggle(recipe.id)}
+            aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {isFavorited ? '★' : '☆'}
+          </button>
+        )}
       </div>
 
       <p className={styles.description}>{recipe.description}</p>

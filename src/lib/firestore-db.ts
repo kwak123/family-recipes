@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { getFirestore as getFirestoreInstance, Timestamp } from 'firebase-admin/firestore';
 import { createHash } from 'crypto';
-import { User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite } from './types';
+import { User, Household, Recipe, MealPlan, MealPlanRecipe, GroceryItem, UserInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
 // ============================================================================
@@ -1064,7 +1064,7 @@ export async function archiveRecipe(recipeId: string): Promise<Recipe> {
 // WEEK PLAN OPERATIONS
 // ============================================================================
 
-export async function getWeekPlan(householdId: string, weekStartDate: string): Promise<WeekPlan | null> {
+export async function getMealPlan(householdId: string, weekStartDate: string): Promise<MealPlan | null> {
   const db = getFirestore();
   const snapshot = await db.collection(getCollectionName('weekPlans'))
     .where('householdId', '==', householdId)
@@ -1076,19 +1076,19 @@ export async function getWeekPlan(householdId: string, weekStartDate: string): P
     return null;
   }
 
-  return snapshot.docs[0].data() as WeekPlan;
+  return snapshot.docs[0].data() as MealPlan;
 }
 
-export async function getCurrentWeekPlan(householdId: string): Promise<WeekPlan | null> {
+export async function getCurrentMealPlan(householdId: string): Promise<MealPlan | null> {
   const weekStart = getCurrentWeekStart();
-  return getWeekPlan(householdId, weekStart);
+  return getMealPlan(householdId, weekStart);
 }
 
-export async function createWeekPlan(householdId: string, weekStartDate: string): Promise<WeekPlan> {
+export async function createMealPlan(householdId: string, weekStartDate: string): Promise<MealPlan> {
   const db = getFirestore();
   const weekEndDate = getWeekEnd(weekStartDate);
 
-  const weekPlan: WeekPlan = {
+  const mealPlan: MealPlan = {
     id: generateId('weekplan'),
     householdId,
     weekStartDate,
@@ -1099,22 +1099,22 @@ export async function createWeekPlan(householdId: string, weekStartDate: string)
     updatedAt: now()
   };
 
-  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).set(weekPlan);
-  return weekPlan;
+  await db.collection(getCollectionName('weekPlans')).doc(mealPlan.id).set(mealPlan);
+  return mealPlan;
 }
 
-export async function addRecipeToWeekPlan(
+export async function addRecipeToMealPlan(
   householdId: string,
   recipeId: string,
-  dayOfWeek: WeekPlanRecipe['dayOfWeek'],
-  mealType: WeekPlanRecipe['mealType'],
+  dayOfWeek: MealPlanRecipe['dayOfWeek'],
+  mealType: MealPlanRecipe['mealType'],
   addedBy: string
-): Promise<WeekPlan> {
+): Promise<MealPlan> {
   const weekStart = getCurrentWeekStart();
-  let weekPlan = await getWeekPlan(householdId, weekStart);
+  let mealPlan = await getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    weekPlan = await createWeekPlan(householdId, weekStart);
+  if (!mealPlan) {
+    mealPlan = await createMealPlan(householdId, weekStart);
   }
 
   // Check if recipe exists
@@ -1123,8 +1123,8 @@ export async function addRecipeToWeekPlan(
     throw new Error('Recipe not found');
   }
 
-  // Add recipe to week plan
-  const newRecipeEntry: WeekPlanRecipe = {
+  // Add recipe to meal plan
+  const newRecipeEntry: MealPlanRecipe = {
     recipeId,
     dayOfWeek,
     mealType,
@@ -1132,113 +1132,113 @@ export async function addRecipeToWeekPlan(
     addedAt: now()
   };
 
-  weekPlan.recipes.push(newRecipeEntry);
+  mealPlan.recipes.push(newRecipeEntry);
 
   // Regenerate grocery list
-  const recipeIds = weekPlan.recipes.map(r => r.recipeId);
+  const recipeIds = mealPlan.recipes.map(r => r.recipeId);
   const recipes = await Promise.all(
     recipeIds.map(id => getRecipe(id))
   );
   const validRecipes = recipes.filter(r => r !== null) as Recipe[];
-  weekPlan.generatedGroceryList = aggregateIngredients(validRecipes);
+  mealPlan.generatedGroceryList = aggregateIngredients(validRecipes);
 
-  weekPlan.updatedAt = now();
+  mealPlan.updatedAt = now();
 
   const db = getFirestore();
-  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
-    recipes: weekPlan.recipes,
-    generatedGroceryList: weekPlan.generatedGroceryList,
-    updatedAt: weekPlan.updatedAt
+  await db.collection(getCollectionName('weekPlans')).doc(mealPlan.id).update({
+    recipes: mealPlan.recipes,
+    generatedGroceryList: mealPlan.generatedGroceryList,
+    updatedAt: mealPlan.updatedAt
   });
 
-  return weekPlan;
+  return mealPlan;
 }
 
-export async function removeRecipeFromWeekPlan(
+export async function removeRecipeFromMealPlan(
   householdId: string,
   recipeId: string
-): Promise<WeekPlan> {
+): Promise<MealPlan> {
   const weekStart = getCurrentWeekStart();
-  const weekPlan = await getWeekPlan(householdId, weekStart);
+  const mealPlan = await getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    throw new Error('Week plan not found');
+  if (!mealPlan) {
+    throw new Error('Meal plan not found');
   }
 
   // Remove recipe
-  weekPlan.recipes = weekPlan.recipes.filter(r => r.recipeId !== recipeId);
+  mealPlan.recipes = mealPlan.recipes.filter(r => r.recipeId !== recipeId);
 
   // Regenerate grocery list
-  const recipeIds = weekPlan.recipes.map(r => r.recipeId);
+  const recipeIds = mealPlan.recipes.map(r => r.recipeId);
   const recipes = await Promise.all(
     recipeIds.map(id => getRecipe(id))
   );
   const validRecipes = recipes.filter(r => r !== null) as Recipe[];
-  weekPlan.generatedGroceryList = aggregateIngredients(validRecipes);
+  mealPlan.generatedGroceryList = aggregateIngredients(validRecipes);
 
-  weekPlan.updatedAt = now();
+  mealPlan.updatedAt = now();
 
   const db = getFirestore();
-  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
-    recipes: weekPlan.recipes,
-    generatedGroceryList: weekPlan.generatedGroceryList,
-    updatedAt: weekPlan.updatedAt
+  await db.collection(getCollectionName('weekPlans')).doc(mealPlan.id).update({
+    recipes: mealPlan.recipes,
+    generatedGroceryList: mealPlan.generatedGroceryList,
+    updatedAt: mealPlan.updatedAt
   });
 
-  return weekPlan;
+  return mealPlan;
 }
 
 export async function updateGroceryItemChecked(
   householdId: string,
   ingredientName: string,
   checked: boolean
-): Promise<WeekPlan> {
+): Promise<MealPlan> {
   const weekStart = getCurrentWeekStart();
-  const weekPlan = await getWeekPlan(householdId, weekStart);
+  const mealPlan = await getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    throw new Error('Week plan not found');
+  if (!mealPlan) {
+    throw new Error('Meal plan not found');
   }
 
-  const item = weekPlan.generatedGroceryList.find(
+  const item = mealPlan.generatedGroceryList.find(
     i => i.name.toLowerCase() === ingredientName.toLowerCase()
   );
 
   if (item) {
     item.checkedOff = checked;
-    weekPlan.updatedAt = now();
+    mealPlan.updatedAt = now();
 
     const db = getFirestore();
-    await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
-      generatedGroceryList: weekPlan.generatedGroceryList,
-      updatedAt: weekPlan.updatedAt
+    await db.collection(getCollectionName('weekPlans')).doc(mealPlan.id).update({
+      generatedGroceryList: mealPlan.generatedGroceryList,
+      updatedAt: mealPlan.updatedAt
     });
   }
 
-  return weekPlan;
+  return mealPlan;
 }
 
-export async function regenerateWeekPlanGroceryList(householdId: string): Promise<WeekPlan> {
+export async function regenerateMealPlanGroceryList(householdId: string): Promise<MealPlan> {
   const weekStart = getCurrentWeekStart();
-  const weekPlan = await getWeekPlan(householdId, weekStart);
+  const mealPlan = await getMealPlan(householdId, weekStart);
 
-  if (!weekPlan) {
-    throw new Error('Week plan not found');
+  if (!mealPlan) {
+    throw new Error('Meal plan not found');
   }
 
-  const recipeIds = weekPlan.recipes.map(r => r.recipeId);
+  const recipeIds = mealPlan.recipes.map(r => r.recipeId);
   const recipes = await Promise.all(recipeIds.map(id => getRecipe(id)));
   const validRecipes = recipes.filter(r => r !== null) as Recipe[];
-  weekPlan.generatedGroceryList = aggregateIngredients(validRecipes);
-  weekPlan.updatedAt = now();
+  mealPlan.generatedGroceryList = aggregateIngredients(validRecipes);
+  mealPlan.updatedAt = now();
 
   const db = getFirestore();
-  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
-    generatedGroceryList: weekPlan.generatedGroceryList,
-    updatedAt: weekPlan.updatedAt
+  await db.collection(getCollectionName('weekPlans')).doc(mealPlan.id).update({
+    generatedGroceryList: mealPlan.generatedGroceryList,
+    updatedAt: mealPlan.updatedAt
   });
 
-  return weekPlan;
+  return mealPlan;
 }
 
 // ============================================================================
@@ -1285,7 +1285,7 @@ export async function purgeDatabase(): Promise<void> {
 export async function getDatabaseStats() {
   const db = getFirestore();
 
-  const [usersSnapshot, householdsSnapshot, recipesSnapshot, weekPlansSnapshot, userInvitesSnapshot] = await Promise.all([
+  const [usersSnapshot, householdsSnapshot, recipesSnapshot, mealPlansSnapshot, userInvitesSnapshot] = await Promise.all([
     db.collection(getCollectionName('users')).get(),
     db.collection(getCollectionName('households')).get(),
     db.collection(getCollectionName('recipes')).get(),
@@ -1297,7 +1297,7 @@ export async function getDatabaseStats() {
     users: usersSnapshot.size,
     households: householdsSnapshot.size,
     recipes: recipesSnapshot.size,
-    weekPlans: weekPlansSnapshot.size,
+    mealPlans: mealPlansSnapshot.size,
     userInvites: userInvitesSnapshot.size
   };
 }
