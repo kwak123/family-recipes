@@ -7,7 +7,7 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { preferences, favoriteIngredients, householdId, userId } = body;
+    const { preferences, favoriteIngredients, groceryIngredients, householdId, userId } = body;
 
     const defaultHouseholdId = householdId || 'default-household';
     const defaultUserId = userId || 'default-user';
@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
         try {
           for await (const recipe of generateRecipesWithGeminiStream(
             preferences || '',
-            favoriteIngredients
+            favoriteIngredients,
+            groceryIngredients
           )) {
             const [saved] = await saveRecipes([{
               ...recipe,

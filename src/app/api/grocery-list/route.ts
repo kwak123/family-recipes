@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentWeekPlan } from '@/lib/firestore-db';
+import { getCurrentWeekPlan, updateGroceryItemChecked } from '@/lib/firestore-db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,5 +19,17 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to generate grocery list' },
       { status: 500 }
     );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { itemName, checked, householdId } = await request.json();
+    const hid = householdId || 'default-household';
+    const weekPlan = await updateGroceryItemChecked(hid, itemName, checked);
+    return NextResponse.json(weekPlan.generatedGroceryList);
+  } catch (error) {
+    console.error('Grocery check error:', error);
+    return NextResponse.json({ error: 'Failed to update item' }, { status: 500 });
   }
 }

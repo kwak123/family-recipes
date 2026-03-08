@@ -1218,6 +1218,29 @@ export async function updateGroceryItemChecked(
   return weekPlan;
 }
 
+export async function regenerateWeekPlanGroceryList(householdId: string): Promise<WeekPlan> {
+  const weekStart = getCurrentWeekStart();
+  const weekPlan = await getWeekPlan(householdId, weekStart);
+
+  if (!weekPlan) {
+    throw new Error('Week plan not found');
+  }
+
+  const recipeIds = weekPlan.recipes.map(r => r.recipeId);
+  const recipes = await Promise.all(recipeIds.map(id => getRecipe(id)));
+  const validRecipes = recipes.filter(r => r !== null) as Recipe[];
+  weekPlan.generatedGroceryList = aggregateIngredients(validRecipes);
+  weekPlan.updatedAt = now();
+
+  const db = getFirestore();
+  await db.collection(getCollectionName('weekPlans')).doc(weekPlan.id).update({
+    generatedGroceryList: weekPlan.generatedGroceryList,
+    updatedAt: weekPlan.updatedAt
+  });
+
+  return weekPlan;
+}
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================

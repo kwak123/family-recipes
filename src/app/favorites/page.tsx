@@ -39,7 +39,8 @@ export default function Favorites() {
       // Fetch all recipes to filter favorites
       const recipesRes = await fetch('/api/recipes');
       const recipesData = await recipesRes.json();
-      const favoriteRecipes = recipesData.filter((recipe: Recipe) =>
+      const recipesArray: Recipe[] = Array.isArray(recipesData) ? recipesData : [];
+      const favoriteRecipes = recipesArray.filter((recipe: Recipe) =>
         favoriteIds.includes(recipe.id)
       );
       setRecipes(favoriteRecipes);

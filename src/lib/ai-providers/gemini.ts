@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Recipe } from '../types';
 import {
   RECIPE_GENERATION_SYSTEM_PROMPT,
+  MEAL_SIMPLIFY_SYSTEM_PROMPT,
   buildUserPrompt,
   validateRecipes
 } from '../recipe-prompt';
@@ -14,7 +15,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
  */
 export async function* generateRecipesWithGeminiStream(
   preferences: string,
-  favoriteIngredients?: string[]
+  favoriteIngredients?: string[],
+  groceryIngredients?: string[]
 ): AsyncGenerator<Recipe> {
   const model = genAI.getGenerativeModel({
     model: 'gemini-3.1-flash-lite-preview',
@@ -26,7 +28,7 @@ export async function* generateRecipesWithGeminiStream(
 
   const fullPrompt = `${RECIPE_GENERATION_SYSTEM_PROMPT}
 
-${buildUserPrompt(preferences, favoriteIngredients)}
+${buildUserPrompt(preferences, favoriteIngredients, groceryIngredients)}
 
 Remember: Return ONLY NDJSON — one complete JSON object per line, no array wrapper, no markdown.`;
 
@@ -64,6 +66,54 @@ Remember: Return ONLY NDJSON — one complete JSON object per line, no array wra
       console.error('Could not parse final buffer:', buffer);
     }
   }
+}
+
+/**
+ * Simplify a list of meal plan recipes using Gemini to reduce total unique ingredients
+ */
+export async function simplifyMealPlanWithGemini(recipes: Recipe[]): Promise<Recipe[]> {
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-3.1-flash-lite-preview',
+    generationConfig: { temperature: 0.3, maxOutputTokens: 8192 },
+  });
+
+  const recipeNdjson = recipes
+    .map(r => JSON.stringify({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      cookTimeMinutes: r.cookTimeMinutes,
+      servings: r.servings,
+      ingredients: r.ingredients,
+      instructions: r.instructions,
+      tags: r.tags,
+    }))
+    .join('\n');
+
+  const fullPrompt = `${MEAL_SIMPLIFY_SYSTEM_PROMPT}
+
+Input recipes (NDJSON):
+${recipeNdjson}
+
+Remember: Return ONLY NDJSON — one simplified recipe per line, same order as input, no array wrapper, no markdown.`;
+
+  const result = await model.generateContent(fullPrompt);
+  const responseText = result.response.text().trim();
+
+  const simplified: Recipe[] = [];
+  for (const line of responseText.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      const recipe = JSON.parse(trimmed);
+      if (validateRecipes([recipe])) {
+        simplified.push(recipe as Recipe);
+      }
+    } catch {
+      // skip unparseable lines
+    }
+  }
+  return simplified;
 }
 
 /**

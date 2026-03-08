@@ -24,11 +24,18 @@ $transition: all 0.2s ease;
 .inputSection {
   display: flex;
   gap: $spacing-md;
-  margin-bottom: $spacing-2xl;
+  margin-bottom: $spacing-sm;
 
   @media (max-width: 768px) {
     flex-direction: column;
   }
+}
+
+.groceryHint {
+  font-size: 0.8125rem;
+  color: #16a34a;
+  margin-bottom: $spacing-xl;
+  font-weight: 500;
 }
 
 .input {

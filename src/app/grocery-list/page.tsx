@@ -20,11 +20,28 @@ export default function GroceryList() {
     try {
       const response = await fetch('/api/grocery-list');
       const data = await response.json();
-      setItems(data);
+      setItems(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch grocery list:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleChecked = async (itemName: string, checked: boolean) => {
+    setItems(prev => prev.map(i => i.name === itemName ? { ...i, checkedOff: checked } : i));
+    try {
+      const response = await fetch('/api/grocery-list', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemName, checked })
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        if (Array.isArray(updated)) setItems(updated);
+      }
+    } catch {
+      setItems(prev => prev.map(i => i.name === itemName ? { ...i, checkedOff: !checked } : i));
     }
   };
 
@@ -69,15 +86,21 @@ export default function GroceryList() {
         {!loading && items.length > 0 && (
           <div className={styles.listSection}>
             <p className={styles.itemCount}>
-              {items.length} {items.length === 1 ? 'item' : 'items'}
+              {(() => {
+                const unchecked = items.filter(i => !i.checkedOff).length;
+                return unchecked < items.length
+                  ? `${unchecked} of ${items.length} items remaining`
+                  : `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
+              })()}
             </p>
             <ul className={styles.list}>
-              {items.map((item, index) => (
+              {[...items].sort((a, b) => (a.checkedOff ? 1 : 0) - (b.checkedOff ? 1 : 0)).map((item, index) => (
                 <GroceryItem
                   key={`${item.name}-${index}`}
                   item={item}
                   isFavorited={favoriteIngredients.includes(item.name.toLowerCase().trim())}
                   onFavoriteToggle={handleToggleFavorite}
+                  onCheckToggle={handleToggleChecked}
                 />
               ))}
             </ul>

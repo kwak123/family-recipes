@@ -49,12 +49,13 @@ Return ONLY NDJSON. One complete JSON object per line. No array brackets. No mar
  */
 export function buildUserPrompt(
   preferences: string,
-  favoriteIngredients?: string[]
+  favoriteIngredients?: string[],
+  groceryIngredients?: string[]
 ): string {
   const cleanPreferences = preferences.trim();
   let prompt = '';
 
-  if (!cleanPreferences && (!favoriteIngredients || favoriteIngredients.length === 0)) {
+  if (!cleanPreferences && (!favoriteIngredients || favoriteIngredients.length === 0) && (!groceryIngredients || groceryIngredients.length === 0)) {
     return "Generate a diverse set of recipes suitable for a typical week. Include a mix of vegetarian and meat dishes, quick meals and slower options, various cuisines.";
   }
 
@@ -64,15 +65,42 @@ export function buildUserPrompt(
     prompt = "Generate a diverse set of recipes suitable for a typical week.";
   }
 
+  // Add grocery list ingredients to prioritize
+  if (groceryIngredients && groceryIngredients.length > 0) {
+    prompt += `\n\nALREADY HAVE: The household already has these ingredients in their grocery list. Design at least 3-4 recipes to use them so nothing goes to waste: ${groceryIngredients.join(', ')}.`;
+  }
+
   // Add favorite ingredients if provided
   if (favoriteIngredients && favoriteIngredients.length > 0) {
-    prompt += `\n\nIMPORTANT: Try to incorporate these favorite ingredients: ${favoriteIngredients.join(', ')}. These are ingredients the household loves and wants to use regularly. Prioritize recipes that use one or more of these ingredients.`;
+    prompt += `\n\nFAVORITE INGREDIENTS: Try to incorporate these ingredients the household loves: ${favoriteIngredients.join(', ')}. Prioritize recipes that use one or more of these.`;
   }
 
   prompt += `\n\nPlease ensure the recipes match these preferences while maintaining variety in cooking time, ingredients, and preparation style.`;
 
   return prompt;
 }
+
+/**
+ * System prompt for simplifying a meal plan to reduce total unique ingredients
+ */
+export const MEAL_SIMPLIFY_SYSTEM_PROMPT = `You are a meal planning optimization assistant. Given a list of meal plan recipes, return simplified versions that reduce the total number of unique ingredients needed across the whole week.
+
+IMPORTANT: You must respond with valid JSON only. No markdown, no code blocks, no explanations.
+
+Your response must be NDJSON — output each simplified recipe as a single-line JSON object, one per line, NO array wrapper.
+
+For each input recipe, return a simplified version that:
+- Keeps the SAME recipe id, name, and general meal concept
+- Reduces ingredients to at most 8 per recipe, using common pantry staples
+- Shares ingredients with other recipes in the plan (e.g., if two recipes both use onion, that's better)
+- Adjusts instructions to match the simplified ingredient list (keep 4-6 steps)
+- Maintains realistic cook times and servings
+
+Use the same JSON structure as the input recipes. Return one simplified recipe per input recipe, in the same order.
+
+RESPONSE FORMAT:
+Return ONLY NDJSON. One complete JSON object per line. No array brackets. No markdown. No text before or after.`;
+
 
 /**
  * Example of how to call an AI API (Claude, GPT, etc.)

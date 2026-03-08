@@ -12,6 +12,7 @@ export default function Home() {
   const { recipes, setRecipes, appendRecipe, preferences, setPreferences } = useRecipes();
   const [weekPlanIds, setWeekPlanIds] = useState<string[]>([]);
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
+  const [groceryIngredients, setGroceryIngredients] = useState<string[]>([]);
   const [pendingMealPlanIds, setPendingMealPlanIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -19,6 +20,7 @@ export default function Home() {
   useEffect(() => {
     fetchWeekPlan();
     fetchFavorites();
+    fetchGroceryIngredients();
   }, []);
 
   const fetchWeekPlan = async () => {
@@ -42,6 +44,18 @@ export default function Home() {
     }
   };
 
+  const fetchGroceryIngredients = async () => {
+    try {
+      const response = await fetch('/api/grocery-list');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setGroceryIngredients(data.map((item: { name: string }) => item.name));
+      }
+    } catch {
+      // non-critical — just skip
+    }
+  };
+
   const stream = async (append: boolean) => {
     if (!append) setRecipes([]);
     setLoading(true);
@@ -49,7 +63,7 @@ export default function Home() {
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences })
+        body: JSON.stringify({ preferences, groceryIngredients: groceryIngredients.length > 0 ? groceryIngredients : undefined })
       });
 
       if (!response.ok || !response.body) {
@@ -149,6 +163,11 @@ export default function Home() {
             {loading ? 'Generating...' : 'Generate Recipes'}
           </button>
         </div>
+        {groceryIngredients.length > 0 && (
+          <p className={styles.groceryHint}>
+            Using {groceryIngredients.length} item{groceryIngredients.length !== 1 ? 's' : ''} from your grocery list
+          </p>
+        )}
 
         {showGrid && (
           <div className={styles.recipesGrid}>

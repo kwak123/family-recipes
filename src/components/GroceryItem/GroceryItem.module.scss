@@ -23,6 +23,47 @@ $transition: all 0.2s ease;
   &:hover {
     box-shadow: $shadow-lg;
   }
+
+  &.checked {
+    opacity: 0.5;
+
+    .name {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.checkButton {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: transparent;
+  transition: $transition;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  &:hover {
+    border-color: #16a34a;
+  }
+
+  &.checkButtonChecked {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: white;
+  }
 }
 
 .name {

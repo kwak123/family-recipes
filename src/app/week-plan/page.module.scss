@@ -3,6 +3,11 @@ $primary: #2563eb;
 $primary-hover: #1d4ed8;
 $success: #16a34a;
 $text-secondary: #6b7280;
+$bg: #ffffff;
+$bg-secondary: #f9fafb;
+$border: #e5e7eb;
+$text: #111827;
+$spacing-xs: 0.5rem;
 $spacing-sm: 0.75rem;
 $spacing-md: 1rem;
 $spacing-lg: 1.5rem;
@@ -34,6 +39,38 @@ $transition: all 0.2s ease;
   }
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+}
+
+.simplifyButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: transparent;
+  color: $primary;
+  border: 2px solid $primary;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background-color: $primary;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .groceryLink {
   background-color: $success;
   color: white;
@@ -44,6 +81,197 @@ $transition: all 0.2s ease;
 
   &:hover {
     background-color: #15803d;
+  }
+}
+
+// Simplify preview modal
+.simplifyBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: $spacing-xl $spacing-lg;
+  overflow-y: auto;
+}
+
+.simplifyModal {
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  padding: $spacing-xl;
+}
+
+.simplifyModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
+
+  h2 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.simplifyModalSubtitle {
+  color: $text-secondary;
+  font-size: 0.9375rem;
+}
+
+.simplifyCloseButton {
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  color: $text-secondary;
+  flex-shrink: 0;
+  transition: $transition;
+
+  &:hover {
+    background-color: $bg-secondary;
+    color: $text;
+  }
+}
+
+.simplifyGrid {
+  display: grid;
+  gap: $spacing-lg;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.simplifyCard {
+  background: $bg-secondary;
+  border-radius: $border-radius;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  border: 1px solid $border;
+}
+
+.simplifyCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-sm;
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text;
+  }
+}
+
+.simplifyBadge {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem $spacing-xs;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.simplifyDescription {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  line-height: 1.5;
+}
+
+.simplifyIngredients {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: $text;
+  border-top: 1px solid $border;
+  padding-top: $spacing-sm;
+
+  li {
+    padding: 0.125rem 0;
+    text-transform: capitalize;
+  }
+}
+
+.simplifyModalFooter {
+  border-top: 1px solid $border;
+  padding-top: $spacing-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.simplifyFooterNote {
+  font-size: 0.875rem;
+  color: $text-secondary;
+}
+
+.simplifyFooterActions {
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+.simplifyDismissButton {
+  padding: $spacing-sm $spacing-lg;
+  background: transparent;
+  color: $text-secondary;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background: $bg-secondary;
+    color: $text;
+  }
+}
+
+.simplifyCommitButton {
+  padding: $spacing-sm $spacing-lg;
+  background-color: $primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 

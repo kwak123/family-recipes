@@ -13,6 +13,10 @@ export default function WeekPlan() {
   const [loading, setLoading] = useState(true);
   const [pendingRemoveIds, setPendingRemoveIds] = useState<Set<string>>(new Set());
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [isSimplifying, setIsSimplifying] = useState(false);
+  const [isCommitting, setIsCommitting] = useState(false);
+  const [simplifiedRecipes, setSimplifiedRecipes] = useState<Recipe[]>([]);
+  const [showSimplifyModal, setShowSimplifyModal] = useState(false);
 
   useEffect(() => {
     fetchWeekPlan();
@@ -62,6 +66,46 @@ export default function WeekPlan() {
     }
   };
 
+  const handleSimplify = async () => {
+    if (!recipes.length) return;
+    setIsSimplifying(true);
+    try {
+      const response = await fetch('/api/week-plan/simplify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipes })
+      });
+      const data = await response.json();
+      setSimplifiedRecipes(data.recipes || []);
+      setShowSimplifyModal(true);
+    } catch (error) {
+      console.error('Failed to simplify:', error);
+    } finally {
+      setIsSimplifying(false);
+    }
+  };
+
+  const handleCommitSimplified = async () => {
+    if (!simplifiedRecipes.length) return;
+    setIsCommitting(true);
+    try {
+      const response = await fetch('/api/week-plan/simplify', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipes: simplifiedRecipes })
+      });
+      if (!response.ok) throw new Error('Failed to commit');
+      const data = await response.json();
+      setRecipes(data.recipes || simplifiedRecipes);
+      setShowSimplifyModal(false);
+      setSimplifiedRecipes([]);
+    } catch (error) {
+      console.error('Failed to commit simplified:', error);
+    } finally {
+      setIsCommitting(false);
+    }
+  };
+
   const handleToggleFavorite = async (recipeId: string) => {
     const isFavorited = favoriteRecipeIds.includes(recipeId);
     try {
@@ -83,9 +127,18 @@ export default function WeekPlan() {
         <div className={styles.header}>
           <h1>Meal Plan</h1>
           {recipes.length > 0 && (
-            <Link href="/grocery-list" className={styles.groceryLink}>
-              View Grocery List →
-            </Link>
+            <div className={styles.headerActions}>
+              <button
+                className={styles.simplifyButton}
+                onClick={handleSimplify}
+                disabled={isSimplifying}
+              >
+                {isSimplifying ? 'Simplifying...' : 'Preview Simplified'}
+              </button>
+              <Link href="/grocery-list" className={styles.groceryLink}>
+                View Grocery List →
+              </Link>
+            </div>
           )}
         </div>
 
@@ -124,6 +177,61 @@ export default function WeekPlan() {
           recipe={selectedRecipe}
           onClose={() => setSelectedRecipe(null)}
         />
+      )}
+
+      {showSimplifyModal && (
+        <div className={styles.simplifyBackdrop} onClick={() => setShowSimplifyModal(false)}>
+          <div className={styles.simplifyModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.simplifyModalHeader}>
+              <div>
+                <h2>Simplified Meal Plan Preview</h2>
+                <p className={styles.simplifyModalSubtitle}>
+                  Remixed to reduce unique ingredients — no changes made yet.
+                </p>
+              </div>
+              <button className={styles.simplifyCloseButton} onClick={() => setShowSimplifyModal(false)}>✕</button>
+            </div>
+            <div className={styles.simplifyGrid}>
+              {simplifiedRecipes.map((recipe, i) => {
+                const original = recipes.find(r => r.id === recipe.id) || recipes[i];
+                const saved = original ? original.ingredients.length - recipe.ingredients.length : 0;
+                return (
+                  <div key={recipe.id} className={styles.simplifyCard}>
+                    <div className={styles.simplifyCardHeader}>
+                      <h3>{recipe.name}</h3>
+                      {saved > 0 && (
+                        <span className={styles.simplifyBadge}>−{saved} ingredient{saved !== 1 ? 's' : ''}</span>
+                      )}
+                    </div>
+                    <p className={styles.simplifyDescription}>{recipe.description}</p>
+                    <ul className={styles.simplifyIngredients}>
+                      {recipe.ingredients.map((ing, j) => (
+                        <li key={j}>{ing.quantity} {ing.unit} {ing.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+            <div className={styles.simplifyModalFooter}>
+              <p className={styles.simplifyFooterNote}>
+                Committing will update your recipes and regenerate the grocery list.
+              </p>
+              <div className={styles.simplifyFooterActions}>
+                <button className={styles.simplifyDismissButton} onClick={() => setShowSimplifyModal(false)}>
+                  Dismiss
+                </button>
+                <button
+                  className={styles.simplifyCommitButton}
+                  onClick={handleCommitSimplified}
+                  disabled={isCommitting}
+                >
+                  {isCommitting ? 'Applying...' : 'Commit to Meal Plan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
