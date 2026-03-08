@@ -21,17 +21,6 @@ export default function Nav() {
           Family Recipes
         </Link>
 
-        <button
-          className={styles.hamburger}
-          onClick={() => setMenuOpen(prev => !prev)}
-          aria-label="Toggle menu"
-          aria-expanded={menuOpen}
-        >
-          <span className={`${styles.bar} ${menuOpen ? styles.barTop : ''}`} />
-          <span className={`${styles.bar} ${menuOpen ? styles.barMid : ''}`} />
-          <span className={`${styles.bar} ${menuOpen ? styles.barBot : ''}`} />
-        </button>
-
         {/* Mobile-only: avatar or sign-in button in the top bar */}
         <div className={styles.mobileTopActions}>
           {status === 'authenticated' && session?.user?.image && (
@@ -50,11 +39,22 @@ export default function Nav() {
           )}
         </div>
 
+        <button
+          className={styles.hamburger}
+          onClick={() => setMenuOpen(prev => !prev)}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+        >
+          <span className={`${styles.bar} ${menuOpen ? styles.barTop : ''}`} />
+          <span className={`${styles.bar} ${menuOpen ? styles.barMid : ''}`} />
+          <span className={`${styles.bar} ${menuOpen ? styles.barBot : ''}`} />
+        </button>
+
         <div className={`${styles.menuWrapper} ${menuOpen ? styles.menuOpen : ''}`}>
           <ul className={styles.links} onClick={closeMenu}>
             <li><Link href="/">Find Recipes</Link></li>
             <li><Link href="/my-homes">My Homes</Link></li>
-            <li><Link href="/week-plan">Week Plan</Link></li>
+            <li><Link href="/week-plan">Meal Plan</Link></li>
             <li><Link href="/grocery-list">Grocery List</Link></li>
             <li><Link href="/favorites">Favorites</Link></li>
             <li><Link href="/invite">Invite</Link></li>

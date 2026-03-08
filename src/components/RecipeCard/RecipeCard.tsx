@@ -8,6 +8,7 @@ interface RecipeCardProps {
   actionStyle?: 'primary' | 'danger';
   isInPlan?: boolean;
   isFavorited?: boolean;
+  actionPending?: boolean;
   onFavoriteToggle?: (recipeId: string) => void;
   onViewRecipe?: (recipe: Recipe) => void;
 }
@@ -19,6 +20,7 @@ export default function RecipeCard({
   actionStyle = 'primary',
   isInPlan = false,
   isFavorited = false,
+  actionPending = false,
   onFavoriteToggle,
   onViewRecipe
 }: RecipeCardProps) {
@@ -60,17 +62,22 @@ export default function RecipeCard({
             View Recipe
           </button>
         )}
-        {actionLabel && (
-          <button
-            className={`${styles.button} ${styles[actionStyle]}`}
-            onClick={() => onAction(recipe.id)}
-          >
-            {actionLabel}
+        {isInPlan ? (
+          <button className={`${styles.button} ${styles.inPlanButton}`} disabled>
+            In Meal Plan
           </button>
+        ) : (
+          actionLabel && (
+            <button
+              className={`${styles.button} ${styles[actionStyle]}`}
+              onClick={() => onAction(recipe.id)}
+              disabled={actionPending}
+            >
+              {actionPending ? <span className={styles.spinner} /> : actionLabel}
+            </button>
+          )
         )}
       </div>
-
-      {isInPlan && <div className={styles.badge}>In Week Plan</div>}
     </div>
   );
 }

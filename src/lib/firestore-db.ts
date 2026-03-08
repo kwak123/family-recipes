@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import { getFirestore as getFirestoreInstance, Timestamp } from 'firebase-admin/firestore';
+import { createHash } from 'crypto';
 import { User, Household, Recipe, WeekPlan, WeekPlanRecipe, GroceryItem, UserInvite } from './types';
 import { aggregateIngredients } from '@/utils/grocery';
 
@@ -66,6 +67,24 @@ function getCollectionName(baseName: string): string {
  */
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Generate a content-based hash ID for a recipe.
+ * Same content = same ID, enabling deduplication.
+ */
+function hashRecipeContent(recipe: Omit<Recipe, 'id' | 'createdAt'>): string {
+  const content = {
+    name: recipe.name,
+    description: recipe.description,
+    cookTimeMinutes: recipe.cookTimeMinutes,
+    servings: recipe.servings,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
+    tags: recipe.tags,
+  };
+  const hash = createHash('sha256').update(JSON.stringify(content)).digest('hex');
+  return `recipe-${hash.slice(0, 16)}`;
 }
 
 /**
@@ -993,7 +1012,7 @@ export async function saveRecipe(recipe: Omit<Recipe, 'id' | 'createdAt'>): Prom
 
   const newRecipe: Recipe = {
     ...recipe,
-    id: generateId('recipe'),
+    id: hashRecipeContent(recipe),
     createdAt: now()
   };
 
@@ -1009,6 +1028,7 @@ export async function saveRecipes(recipes: Omit<Recipe, 'createdAt'>[]): Promise
   for (const recipe of recipes) {
     const newRecipe: Recipe = {
       ...recipe,
+      id: hashRecipeContent(recipe),
       createdAt: now()
     };
 

@@ -4,18 +4,18 @@ import { useState, useEffect } from 'react';
 import RecipeCard from '@/components/RecipeCard/RecipeCard';
 import RecipeModal from '@/components/RecipeModal/RecipeModal';
 import DevPurge from '@/components/DevPurge/DevPurge';
+import { useRecipes } from '@/context/RecipesContext';
 import { Recipe } from '@/lib/types';
 import styles from './page.module.scss';
 
 export default function Home() {
-  const [preferences, setPreferences] = useState('');
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const { recipes, setRecipes, appendRecipe, preferences, setPreferences } = useRecipes();
   const [weekPlanIds, setWeekPlanIds] = useState<string[]>([]);
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
+  const [pendingMealPlanIds, setPendingMealPlanIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
-  // Fetch current week plan and favorites on mount
   useEffect(() => {
     fetchWeekPlan();
     fetchFavorites();
@@ -25,7 +25,8 @@ export default function Home() {
     try {
       const response = await fetch('/api/week-plan');
       const data = await response.json();
-      setWeekPlanIds(data.recipeIds || []);
+      const ids = (data.recipes || []).map((wr: { recipeId: string }) => wr.recipeId);
+      setWeekPlanIds(ids);
     } catch (error) {
       console.error('Failed to fetch week plan:', error);
     }
@@ -41,9 +42,9 @@ export default function Home() {
     }
   };
 
-  const handleGenerate = async () => {
+  const stream = async (append: boolean) => {
+    if (!append) setRecipes([]);
     setLoading(true);
-    setRecipes([]);
     try {
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
@@ -75,7 +76,7 @@ export default function Home() {
             if (data.error) {
               console.error('Stream error:', data.error);
             } else {
-              setRecipes(prev => [...prev, data]);
+              appendRecipe(data);
             }
           } catch {
             // incomplete line
@@ -89,7 +90,8 @@ export default function Home() {
     }
   };
 
-  const handleAddToWeekPlan = async (recipeId: string) => {
+  const handleAddToMealPlan = async (recipeId: string) => {
+    setPendingMealPlanIds(prev => new Set(prev).add(recipeId));
     try {
       const response = await fetch('/api/week-plan', {
         method: 'POST',
@@ -97,9 +99,12 @@ export default function Home() {
         body: JSON.stringify({ recipeId })
       });
       const data = await response.json();
-      setWeekPlanIds(data.recipeIds || []);
+      const ids = (data.recipes || []).map((wr: { recipeId: string }) => wr.recipeId);
+      setWeekPlanIds(ids);
     } catch (error) {
       console.error('Failed to add recipe:', error);
+    } finally {
+      setPendingMealPlanIds(prev => { const next = new Set(prev); next.delete(recipeId); return next; });
     }
   };
 
@@ -118,10 +123,12 @@ export default function Home() {
     }
   };
 
+  const showGrid = recipes.length > 0 || loading;
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <h1>Generate Weekly Recipes</h1>
+        <h1>Generate Recipes</h1>
 
         <div className={styles.inputSection}>
           <input
@@ -131,42 +138,53 @@ export default function Home() {
             value={preferences}
             onChange={(e) => setPreferences(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !loading) {
-                handleGenerate();
-              }
+              if (e.key === 'Enter' && !loading) stream(false);
             }}
           />
           <button
             className={styles.generateButton}
-            onClick={handleGenerate}
+            onClick={() => stream(false)}
             disabled={loading}
           >
             {loading ? 'Generating...' : 'Generate Recipes'}
           </button>
         </div>
 
-        {recipes.length > 0 && (
+        {showGrid && (
           <div className={styles.recipesGrid}>
             {recipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
-                onAction={handleAddToWeekPlan}
-                actionLabel="Add to Week Plan"
+                onAction={handleAddToMealPlan}
+                actionLabel="Add to Meal Plan"
                 actionStyle="primary"
                 isInPlan={weekPlanIds.includes(recipe.id)}
+                actionPending={pendingMealPlanIds.has(recipe.id)}
                 isFavorited={favoriteRecipeIds.includes(recipe.id)}
                 onFavoriteToggle={handleToggleFavorite}
                 onViewRecipe={setSelectedRecipe}
               />
             ))}
+            {loading && <div className={styles.skeletonCard} aria-hidden />}
           </div>
         )}
 
-        {recipes.length === 0 && !loading && (
+        {!showGrid && (
           <p className={styles.emptyState}>
             Enter your preferences and click Generate to see recipe suggestions.
           </p>
+        )}
+
+        {recipes.length > 0 && !loading && (
+          <div className={styles.loadMoreSection}>
+            <button
+              className={styles.loadMoreButton}
+              onClick={() => stream(true)}
+            >
+              Load More
+            </button>
+          </div>
         )}
 
         {process.env.NODE_ENV === 'development' && <DevPurge />}

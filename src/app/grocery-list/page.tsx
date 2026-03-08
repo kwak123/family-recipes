@@ -60,7 +60,7 @@ export default function GroceryList() {
         <div className={styles.header}>
           <h1>Grocery List</h1>
           <Link href="/week-plan" className={styles.backLink}>
-            ← Back to Week Plan
+            ← Back to Meal Plan
           </Link>
         </div>
 
@@ -87,7 +87,7 @@ export default function GroceryList() {
         {!loading && items.length === 0 && (
           <div className={styles.emptyState}>
             <p>No items in your grocery list yet.</p>
-            <p>Add recipes to your week plan to generate a grocery list.</p>
+            <p>Add recipes to your meal plan to generate a grocery list.</p>
             <Link href="/" className={styles.homeLink}>
               Generate Recipes
             </Link>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import RecipeModal from '@/components/RecipeModal/RecipeModal';
 import GroceryItem from '@/components/GroceryItem/GroceryItem';
 import { Recipe, GroceryItem as GroceryItemType } from '@/lib/types';
 import styles from './page.module.scss';
@@ -16,6 +17,7 @@ export default function Favorites() {
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [favoriteIngredients, setFavoriteIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
     fetchFavorites();
@@ -138,6 +140,7 @@ export default function Favorites() {
                     actionLabel=""
                     isFavorited={true}
                     onFavoriteToggle={handleToggleFavoriteRecipe}
+                    onViewRecipe={setSelectedRecipe}
                   />
                 ))}
               </div>
@@ -189,6 +192,13 @@ export default function Favorites() {
           </>
         )}
       </div>
+
+      {selectedRecipe && (
+        <RecipeModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+        />
+      )}
     </main>
   );
 }

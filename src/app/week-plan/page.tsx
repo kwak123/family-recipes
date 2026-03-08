@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import RecipeModal from '@/components/RecipeModal/RecipeModal';
 import { Recipe } from '@/lib/types';
 import styles from './page.module.scss';
 
@@ -10,6 +11,8 @@ export default function WeekPlan() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingRemoveIds, setPendingRemoveIds] = useState<Set<string>>(new Set());
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
     fetchWeekPlan();
@@ -41,6 +44,7 @@ export default function WeekPlan() {
   };
 
   const handleRemove = async (recipeId: string) => {
+    setPendingRemoveIds(prev => new Set(prev).add(recipeId));
     try {
       const response = await fetch('/api/week-plan', {
         method: 'DELETE',
@@ -53,6 +57,8 @@ export default function WeekPlan() {
       setRecipes(recipeList);
     } catch (error) {
       console.error('Failed to remove recipe:', error);
+    } finally {
+      setPendingRemoveIds(prev => { const next = new Set(prev); next.delete(recipeId); return next; });
     }
   };
 
@@ -75,7 +81,7 @@ export default function WeekPlan() {
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1>Week Plan</h1>
+          <h1>Meal Plan</h1>
           {recipes.length > 0 && (
             <Link href="/grocery-list" className={styles.groceryLink}>
               View Grocery List →
@@ -94,8 +100,10 @@ export default function WeekPlan() {
                 onAction={handleRemove}
                 actionLabel="Remove"
                 actionStyle="danger"
+                actionPending={pendingRemoveIds.has(recipe.id)}
                 isFavorited={favoriteRecipeIds.includes(recipe.id)}
                 onFavoriteToggle={handleToggleFavorite}
+                onViewRecipe={setSelectedRecipe}
               />
             ))}
           </div>
@@ -103,13 +111,20 @@ export default function WeekPlan() {
 
         {!loading && recipes.length === 0 && (
           <div className={styles.emptyState}>
-            <p>No recipes in your week plan yet.</p>
+            <p>No recipes in your meal plan yet.</p>
             <Link href="/" className={styles.homeLink}>
               Generate Recipes
             </Link>
           </div>
         )}
       </div>
+
+      {selectedRecipe && (
+        <RecipeModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+        />
+      )}
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SessionProvider from "@/components/SessionProvider";
 import Nav from "@/components/Nav/Nav";
+import { RecipesProvider } from "@/context/RecipesContext";
 import "./globals.scss";
 
 export const metadata: Metadata = {
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SessionProvider>
-          <Nav />
-          {children}
+          <RecipesProvider>
+            <Nav />
+            {children}
+          </RecipesProvider>
         </SessionProvider>
       </body>
     </html>
