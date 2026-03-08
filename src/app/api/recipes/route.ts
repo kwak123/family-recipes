@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecipesByHousehold } from '@/lib/firestore-db';
+import { getRecipesByHousehold, getUser } from '@/lib/firestore-db';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const householdId = searchParams.get('householdId') || 'default-household';
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const householdId = user?.currentHomeId || 'default-household';
 
     const recipes = await getRecipesByHousehold(householdId, false);
 

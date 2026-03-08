@@ -145,6 +145,9 @@ export default function MyHomesPage() {
       }
 
       setCurrentHomeId(homeId);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('householdChanged', { detail: { homeId } }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to select home');
     }

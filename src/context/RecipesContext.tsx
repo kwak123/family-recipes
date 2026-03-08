@@ -9,6 +9,8 @@ interface RecipesContextValue {
   appendRecipe: (recipe: Recipe) => void;
   preferences: string;
   setPreferences: (prefs: string) => void;
+  currentHomeId: string | null;
+  setCurrentHomeId: (id: string | null) => void;
 }
 
 const RecipesContext = createContext<RecipesContextValue | null>(null);
@@ -16,13 +18,14 @@ const RecipesContext = createContext<RecipesContextValue | null>(null);
 export function RecipesProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [preferences, setPreferences] = useState('');
+  const [currentHomeId, setCurrentHomeId] = useState<string | null>(null);
 
   function appendRecipe(recipe: Recipe) {
     setRecipes(prev => [...prev, recipe]);
   }
 
   return (
-    <RecipesContext.Provider value={{ recipes, setRecipes, appendRecipe, preferences, setPreferences }}>
+    <RecipesContext.Provider value={{ recipes, setRecipes, appendRecipe, preferences, setPreferences, currentHomeId, setCurrentHomeId }}>
       {children}
     </RecipesContext.Provider>
   );

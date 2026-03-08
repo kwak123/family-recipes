@@ -2,13 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   addFavoriteIngredient,
   removeFavoriteIngredient,
-  getHousehold
+  getHousehold,
+  getUser
 } from '@/lib/firestore-db';
+import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const defaultHouseholdId = user?.currentHomeId || 'default-household';
+
     const body = await request.json();
-    const { ingredient, householdId } = body;
+    const { ingredient } = body;
 
     if (!ingredient) {
       return NextResponse.json(
@@ -17,7 +27,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const defaultHouseholdId = householdId || 'default-household';
     const household = await addFavoriteIngredient(defaultHouseholdId, ingredient);
 
     return NextResponse.json({
@@ -39,8 +48,16 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const defaultHouseholdId = user?.currentHomeId || 'default-household';
+
     const body = await request.json();
-    const { ingredient, householdId } = body;
+    const { ingredient } = body;
 
     if (!ingredient) {
       return NextResponse.json(
@@ -49,7 +66,6 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const defaultHouseholdId = householdId || 'default-household';
     const household = await removeFavoriteIngredient(defaultHouseholdId, ingredient);
 
     return NextResponse.json({
@@ -71,8 +87,13 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const householdId = searchParams.get('householdId') || 'default-household';
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const householdId = user?.currentHomeId || 'default-household';
 
     const household = await getHousehold(householdId);
 

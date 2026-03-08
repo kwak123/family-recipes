@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import GroceryItem from '@/components/GroceryItem/GroceryItem';
 import { GroceryItem as GroceryItemType } from '@/lib/types';
+import { useRecipes } from '@/context/RecipesContext';
 import styles from './page.module.scss';
 
 export default function GroceryList() {
@@ -11,10 +12,17 @@ export default function GroceryList() {
   const [favoriteIngredients, setFavoriteIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { currentHomeId } = useRecipes();
+
+  // Re-fetch whenever the current home changes
   useEffect(() => {
+    setItems([]);
+    setFavoriteIngredients([]);
+    setLoading(true);
+
     fetchGroceryList();
     fetchFavorites();
-  }, []);
+  }, [currentHomeId]);
 
   const fetchGroceryList = async () => {
     try {

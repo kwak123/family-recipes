@@ -17,7 +17,7 @@ function FunnelIcon() {
 }
 
 export default function Home() {
-  const { recipes, setRecipes, appendRecipe, preferences, setPreferences } = useRecipes();
+  const { recipes, setRecipes, appendRecipe, preferences, setPreferences, currentHomeId } = useRecipes();
   const [mealPlanIds, setMealPlanIds] = useState<string[]>([]);
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [groceryIngredients, setGroceryIngredients] = useState<string[]>([]);
@@ -67,12 +67,24 @@ export default function Home() {
     localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
   };
 
+  // Re-fetch whenever the current home changes
   useEffect(() => {
+    setRecipes([]);
+    setMealPlanIds([]);
+    setFavoriteRecipeIds([]);
+    setGroceryIngredients([]);
+    setFavoriteIngredientNames([]);
+    setAvailableTags([]);
+    setSelectedTags(new Set());
+    setSelectedIngredients(new Set());
+    setLoadingTags(true);
+    setLoadingIngredients(true);
+
     fetchMealPlanAndTags();
     fetchFavorites();
     fetchGroceryIngredients();
     fetchFavoriteIngredients();
-  }, []);
+  }, [currentHomeId]);
 
   const fetchMealPlanAndTags = async () => {
     try {

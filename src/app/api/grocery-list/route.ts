@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentMealPlan, updateGroceryItemChecked } from '@/lib/firestore-db';
+import { getCurrentMealPlan, updateGroceryItemChecked, getUser } from '@/lib/firestore-db';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const householdId = searchParams.get('householdId') || 'default-household';
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const householdId = user?.currentHomeId || 'default-household';
 
     const mealPlan = await getCurrentMealPlan(householdId);
 
@@ -24,8 +30,15 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { itemName, checked, householdId } = await request.json();
-    const hid = householdId || 'default-household';
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const hid = user?.currentHomeId || 'default-household';
+
+    const { itemName, checked } = await request.json();
     const mealPlan = await updateGroceryItemChecked(hid, itemName, checked);
     return NextResponse.json(mealPlan.generatedGroceryList);
   } catch (error) {

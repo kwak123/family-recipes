@@ -3,13 +3,20 @@ import {
   getCurrentMealPlan,
   addRecipeToMealPlan,
   removeRecipeFromMealPlan,
-  getRecipe
+  getRecipe,
+  getUser
 } from '@/lib/firestore-db';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const householdId = searchParams.get('householdId') || 'default-household';
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const householdId = user?.currentHomeId || 'default-household';
 
     const mealPlan = await getCurrentMealPlan(householdId);
 
@@ -45,8 +52,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const defaultHouseholdId = user?.currentHomeId || 'default-household';
+    const defaultUserId = session.user.id;
+
     const body = await request.json();
-    const { recipeId, householdId, userId, dayOfWeek, mealType } = body;
+    const { recipeId, dayOfWeek, mealType } = body;
 
     if (!recipeId) {
       return NextResponse.json(
@@ -55,8 +71,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const defaultHouseholdId = householdId || 'default-household';
-    const defaultUserId = userId || 'default-user';
     const defaultDay = dayOfWeek || 'monday';
     const defaultMeal = mealType || 'dinner';
 
@@ -95,8 +109,16 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await getUser(session.user.id);
+    const defaultHouseholdId = user?.currentHomeId || 'default-household';
+
     const body = await request.json();
-    const { recipeId, householdId } = body;
+    const { recipeId } = body;
 
     if (!recipeId) {
       return NextResponse.json(
@@ -104,8 +126,6 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const defaultHouseholdId = householdId || 'default-household';
 
     const updatedPlan = await removeRecipeFromMealPlan(defaultHouseholdId, recipeId);
 

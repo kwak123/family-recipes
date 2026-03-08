@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRecipesWithGeminiStream } from '@/lib/ai-providers/gemini';
-import { saveRecipes } from '@/lib/firestore-db';
+import { saveRecipes, getUser } from '@/lib/firestore-db';
+import { auth } from '@/lib/auth';
 
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { preferences, favoriteIngredients, groceryIngredients, selectedTags, excludeIngredients, householdId, userId } = body;
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const defaultHouseholdId = householdId || 'default-household';
-    const defaultUserId = userId || 'default-user';
+    const user = await getUser(session.user.id);
+    const defaultHouseholdId = user?.currentHomeId || 'default-household';
+    const defaultUserId = session.user.id;
+
+    const body = await request.json();
+    const { preferences, favoriteIngredients, groceryIngredients, selectedTags, excludeIngredients } = body;
 
     const encoder = new TextEncoder();
 

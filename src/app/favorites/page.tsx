@@ -6,6 +6,7 @@ import RecipeCard from '@/components/RecipeCard/RecipeCard';
 import RecipeModal from '@/components/RecipeModal/RecipeModal';
 import GroceryItem from '@/components/GroceryItem/GroceryItem';
 import { Recipe, GroceryItem as GroceryItemType } from '@/lib/types';
+import { useRecipes } from '@/context/RecipesContext';
 import styles from './page.module.scss';
 
 type Tab = 'recipes' | 'ingredients';
@@ -19,9 +20,19 @@ export default function Favorites() {
   const [loading, setLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
+  const { currentHomeId } = useRecipes();
+
+  // Re-fetch whenever the current home changes
   useEffect(() => {
+    // Clear out the previous home's data first
+    setRecipes([]);
+    setIngredients([]);
+    setFavoriteRecipeIds([]);
+    setFavoriteIngredients([]);
+    setLoading(true);
+    
     fetchFavorites();
-  }, []);
+  }, [currentHomeId]);
 
   const fetchFavorites = async () => {
     try {
