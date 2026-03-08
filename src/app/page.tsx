@@ -36,6 +36,35 @@ export default function Home() {
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [loadingTags, setLoadingTags] = useState(true);
 
+  const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
+  const [showExcludeModal, setShowExcludeModal] = useState(false);
+  const [excludeInput, setExcludeInput] = useState('');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('family-recipes-excluded-ingredients');
+    if (saved) {
+      try { setExcludeIngredients(JSON.parse(saved)); } catch {}
+    }
+  }, []);
+
+  const handleAddExcluded = () => {
+    const trimmed = excludeInput.trim().toLowerCase();
+    if (!trimmed || excludeIngredients.includes(trimmed)) {
+      setExcludeInput('');
+      return;
+    }
+    const next = [...excludeIngredients, trimmed];
+    setExcludeIngredients(next);
+    localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
+    setExcludeInput('');
+  };
+
+  const handleRemoveExcluded = (ingredient: string) => {
+    const next = excludeIngredients.filter(i => i !== ingredient);
+    setExcludeIngredients(next);
+    localStorage.setItem('family-recipes-excluded-ingredients', JSON.stringify(next));
+  };
+
   useEffect(() => {
     fetchMealPlanAndTags();
     fetchFavorites();
@@ -119,6 +148,7 @@ export default function Home() {
           preferences,
           groceryIngredients: useGrocery && selectedIngredients.size > 0 ? Array.from(selectedIngredients) : undefined,
           selectedTags: useTags && selectedTags.size > 0 ? Array.from(selectedTags) : undefined,
+          excludeIngredients: excludeIngredients.length > 0 ? excludeIngredients : undefined,
         })
       });
 
@@ -276,6 +306,15 @@ export default function Home() {
               </button>
             </div>
           )}
+
+          <button
+            className={`${styles.excludeChip} ${excludeIngredients.length > 0 ? styles.excludeChipActive : ''}`}
+            onClick={() => setShowExcludeModal(true)}
+          >
+            {excludeIngredients.length > 0
+              ? `Excluding ${excludeIngredients.length} ingredient${excludeIngredients.length !== 1 ? 's' : ''}`
+              : 'Exclude ingredients'}
+          </button>
         </div>
 
         {showIngredientsModal && (
@@ -377,6 +416,56 @@ export default function Home() {
           recipe={selectedRecipe}
           onClose={() => setSelectedRecipe(null)}
         />
+      )}
+
+      {showExcludeModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowExcludeModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>Exclude Ingredients</h3>
+              <button className={styles.modalClose} onClick={() => setShowExcludeModal(false)}>✕</button>
+            </div>
+            <p className={styles.excludeSubtitle}>Recipes won&apos;t use these ingredients.</p>
+            <div className={styles.excludeInputRow}>
+              <input
+                className={styles.excludeInput}
+                type="text"
+                placeholder="e.g. peanuts, gluten..."
+                value={excludeInput}
+                onChange={(e) => setExcludeInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddExcluded()}
+                autoFocus
+              />
+              <button
+                className={styles.excludeAddButton}
+                onClick={handleAddExcluded}
+                disabled={!excludeInput.trim()}
+              >
+                Add
+              </button>
+            </div>
+            {excludeIngredients.length > 0 ? (
+              <ul className={styles.excludeList}>
+                {excludeIngredients.map((ing) => (
+                  <li key={ing} className={styles.excludeListItem}>
+                    <span>{ing}</span>
+                    <button
+                      className={styles.excludeTrashButton}
+                      onClick={() => handleRemoveExcluded(ing)}
+                      aria-label={`Remove ${ing}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.excludeEmpty}>No ingredients excluded yet.</p>
+            )}
+          </div>
+        </div>
       )}
     </main>
   );

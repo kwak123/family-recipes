@@ -300,6 +300,124 @@ $transition: all 0.2s ease;
   margin-top: $spacing-xl;
 }
 
+.excludeChip {
+  display: flex;
+  align-items: center;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+}
+
+.excludeChipActive {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.excludeSubtitle {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin: 0 0 $spacing-md;
+}
+
+.excludeInputRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: $spacing-md;
+}
+
+.excludeInput {
+  flex: 1;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    border-color: #f87171;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  }
+}
+
+.excludeAddButton {
+  padding: 0.375rem 0.875rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: $border-radius;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #b91c1c;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.excludeList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.excludeListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.excludeTrashButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 0.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    color: #dc2626;
+    background: #fef2f2;
+  }
+}
+
+.excludeEmpty {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-align: center;
+  padding: $spacing-md 0;
+  margin: 0;
+}
+
 .loadMoreButton {
   padding: $spacing-sm $spacing-2xl;
   background-color: transparent;

@@ -51,13 +51,18 @@ export function buildUserPrompt(
   preferences: string,
   favoriteIngredients?: string[],
   groceryIngredients?: string[],
-  selectedTags?: string[]
+  selectedTags?: string[],
+  excludeIngredients?: string[]
 ): string {
   const cleanPreferences = preferences.trim();
   let prompt = '';
 
   if (!cleanPreferences && (!favoriteIngredients || favoriteIngredients.length === 0) && (!groceryIngredients || groceryIngredients.length === 0) && (!selectedTags || selectedTags.length === 0)) {
-    return "Generate a diverse set of recipes suitable for a typical week. Include a mix of vegetarian and meat dishes, quick meals and slower options, various cuisines.";
+    const basePrompt = "Generate a diverse set of recipes suitable for a typical week. Include a mix of vegetarian and meat dishes, quick meals and slower options, various cuisines.";
+    if (excludeIngredients && excludeIngredients.length > 0) {
+      return basePrompt + `\n\nEXCLUDED INGREDIENTS: Do NOT use any of these ingredients in any recipe — find alternatives: ${excludeIngredients.join(', ')}.`;
+    }
+    return basePrompt;
   }
 
   if (cleanPreferences) {
@@ -79,6 +84,11 @@ export function buildUserPrompt(
   // Add selected tags filter
   if (selectedTags && selectedTags.length > 0) {
     prompt += `\n\nTAG FILTER: Generate recipes that match these tags: ${selectedTags.join(', ')}. All or most recipes should fit at least one of these tags.`;
+  }
+
+  // Add excluded ingredients
+  if (excludeIngredients && excludeIngredients.length > 0) {
+    prompt += `\n\nEXCLUDED INGREDIENTS: Do NOT use any of these ingredients in any recipe — find alternatives: ${excludeIngredients.join(', ')}.`;
   }
 
   prompt += `\n\nPlease ensure the recipes match these preferences while maintaining variety in cooking time, ingredients, and preparation style.`;

@@ -19,7 +19,8 @@ export async function* generateRecipesWithGeminiStream(
   preferences: string,
   favoriteIngredients?: string[],
   groceryIngredients?: string[],
-  selectedTags?: string[]
+  selectedTags?: string[],
+  excludeIngredients?: string[]
 ): AsyncGenerator<Recipe> {
   const model = genAI.getGenerativeModel({
     model: 'gemini-3.1-flash-lite-preview',
@@ -31,7 +32,7 @@ export async function* generateRecipesWithGeminiStream(
 
   const fullPrompt = `${RECIPE_GENERATION_SYSTEM_PROMPT}
 
-${buildUserPrompt(preferences, favoriteIngredients, groceryIngredients, selectedTags)}
+${buildUserPrompt(preferences, favoriteIngredients, groceryIngredients, selectedTags, excludeIngredients)}
 
 Remember: Return ONLY NDJSON — one complete JSON object per line, no array wrapper, no markdown.`;
 
