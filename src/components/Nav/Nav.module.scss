@@ -38,12 +38,27 @@ $transition: all 0.2s ease;
   }
 }
 
-.logo {
+.logoContainer {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logoTitle {
   font-size: 1.25rem;
   font-weight: 700;
   color: $primary;
   white-space: nowrap;
-  flex-shrink: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.logoSubtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text;
+  margin-top: 2px;
 }
 
 // ── Mobile top-bar actions (avatar / sign-in) ─────────────────

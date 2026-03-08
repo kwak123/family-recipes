@@ -4,11 +4,16 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
+import { useRecipes } from '@/context/RecipesContext';
 import styles from './Nav.module.scss';
 
 export default function Nav() {
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { currentHomeId, homes } = useRecipes();
+
+  // Find the active home Name, if any
+  const activeHomeName = homes.find(h => h.id === currentHomeId)?.name;
 
   function closeMenu() {
     setMenuOpen(false);
@@ -17,8 +22,9 @@ export default function Nav() {
   return (
     <nav className={styles.nav}>
       <div className={styles.container}>
-        <Link href="/" className={styles.logo} onClick={closeMenu}>
-          Family Recipes
+        <Link href="/" className={styles.logoContainer} onClick={closeMenu}>
+          <div className={styles.logoTitle}>Family recipes</div>
+          {activeHomeName && <div className={styles.logoSubtitle}>{activeHomeName}</div>}
         </Link>
 
         {/* Mobile-only: avatar or sign-in button in the top bar */}

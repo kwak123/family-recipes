@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Recipe } from '@/lib/types';
+import { Recipe, Household } from '@/lib/types';
 
 interface RecipesContextValue {
   recipes: Recipe[];
@@ -11,6 +11,7 @@ interface RecipesContextValue {
   setPreferences: (prefs: string) => void;
   currentHomeId: string | null;
   setCurrentHomeId: (id: string | null) => void;
+  homes: Household[];
 }
 
 const RecipesContext = createContext<RecipesContextValue | null>(null);
@@ -19,11 +20,15 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [preferences, setPreferences] = useState('');
   const [currentHomeId, setCurrentHomeId] = useState<string | null>(null);
+  const [homes, setHomes] = useState<Household[]>([]);
 
   useEffect(() => {
     fetch('/api/homes')
       .then(res => res.json())
       .then(data => {
+        if (data.homes) {
+          setHomes(data.homes);
+        }
         if (data.currentHomeId) {
           setCurrentHomeId(data.currentHomeId);
         } else if (data.homes && data.homes.length > 0) {
@@ -46,7 +51,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <RecipesContext.Provider value={{ recipes, setRecipes, appendRecipe, preferences, setPreferences, currentHomeId, setCurrentHomeId }}>
+    <RecipesContext.Provider value={{ recipes, setRecipes, appendRecipe, preferences, setPreferences, currentHomeId, setCurrentHomeId, homes }}>
       {children}
     </RecipesContext.Provider>
   );
