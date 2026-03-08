@@ -41,15 +41,21 @@ export default function Home() {
   const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
   const [showExcludeModal, setShowExcludeModal] = useState(false);
   const [excludeInput, setExcludeInput] = useState('');
+  const [isAddingExcluded, setIsAddingExcluded] = useState(false);
+  const [loadingExcluded, setLoadingExcluded] = useState(true);
+  const [removingIngredient, setRemovingIngredient] = useState<string | null>(null);
 
   const fetchExcludeIngredients = async () => {
     if (!currentHomeId) return;
+    setLoadingExcluded(true);
     try {
       const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`);
       const data = await response.json();
       setExcludeIngredients(data.excludedIngredients || []);
     } catch (error) {
       console.error('Failed to fetch excluded ingredients:', error);
+    } finally {
+      setLoadingExcluded(false);
     }
   };
 
@@ -62,11 +68,7 @@ export default function Home() {
       return;
     }
     
-    // Optimistic update
-    const previous = [...excludeIngredients];
-    setExcludeIngredients([...previous, trimmed]);
-    setExcludeInput('');
-
+    setIsAddingExcluded(true);
     try {
       const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
         method: 'POST',
@@ -76,19 +78,18 @@ export default function Home() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setExcludeIngredients(data.excludedIngredients || []);
+      setExcludeInput('');
     } catch (error) {
       console.error('Failed to add excluded ingredient:', error);
-      setExcludeIngredients(previous);
+    } finally {
+      setIsAddingExcluded(false);
     }
   };
 
   const handleRemoveExcluded = async (ingredient: string) => {
     if (!currentHomeId) return;
     
-    // Optimistic update
-    const previous = [...excludeIngredients];
-    setExcludeIngredients(excludeIngredients.filter(i => i !== ingredient));
-
+    setRemovingIngredient(ingredient);
     try {
       const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
         method: 'DELETE',
@@ -100,7 +101,8 @@ export default function Home() {
       setExcludeIngredients(data.excludedIngredients || []);
     } catch (error) {
       console.error('Failed to remove excluded ingredient:', error);
-      setExcludeIngredients(previous);
+    } finally {
+      setRemovingIngredient(null);
     }
   };
 
@@ -320,9 +322,9 @@ export default function Home() {
               <span className={styles.filterSpinner} />
               Ingredients
             </div>
-          ) : groceryIngredients.length > 0 && (
-            <div className={styles.filterChip}>
-              {selectedIngredients.size > 0 && (
+          ) : (
+            <div className={`${styles.filterChip} ${groceryIngredients.length === 0 ? styles.filterChipDisabled : ''}`}>
+              {selectedIngredients.size > 0 && groceryIngredients.length > 0 && (
                 <label className={styles.filterCheckboxLabel}>
                   <input
                     type="checkbox"
@@ -333,13 +335,20 @@ export default function Home() {
                 </label>
               )}
               <button
-                className={`${styles.funnelButton} ${selectedIngredients.size === 0 ? styles.funnelButtonWithLabel : ''}`}
-                onClick={() => setShowIngredientsModal(true)}
+                className={`${styles.funnelButton} ${selectedIngredients.size === 0 || groceryIngredients.length === 0 ? styles.funnelButtonWithLabel : ''}`}
+                onClick={() => {
+                  if (groceryIngredients.length > 0) {
+                    setShowIngredientsModal(true);
+                  }
+                }}
                 aria-label="Select ingredients"
               >
                 <FunnelIcon />
-                {selectedIngredients.size === 0 && <span>Filter by ingredients</span>}
+                {(selectedIngredients.size === 0 || groceryIngredients.length === 0) && <span>Use meal plan ingredients</span>}
               </button>
+              {groceryIngredients.length === 0 && (
+                <div className={styles.tooltip}>Save a recipe to enable this filter</div>
+              )}
             </div>
           )}
 
@@ -348,9 +357,9 @@ export default function Home() {
               <span className={styles.filterSpinner} />
               Tags
             </div>
-          ) : availableTags.length > 0 && (
-            <div className={styles.filterChip}>
-              {selectedTags.size > 0 && (
+          ) : (
+            <div className={`${styles.filterChip} ${availableTags.length === 0 ? styles.filterChipDisabled : ''}`}>
+              {selectedTags.size > 0 && availableTags.length > 0 && (
                 <label className={styles.filterCheckboxLabel}>
                   <input
                     type="checkbox"
@@ -361,24 +370,38 @@ export default function Home() {
                 </label>
               )}
               <button
-                className={`${styles.funnelButton} ${selectedTags.size === 0 ? styles.funnelButtonWithLabel : ''}`}
-                onClick={() => setShowTagsModal(true)}
+                className={`${styles.funnelButton} ${selectedTags.size === 0 || availableTags.length === 0 ? styles.funnelButtonWithLabel : ''}`}
+                onClick={() => {
+                  if (availableTags.length > 0) {
+                    setShowTagsModal(true);
+                  }
+                }}
                 aria-label="Select tags"
               >
                 <FunnelIcon />
-                {selectedTags.size === 0 && <span>Filter by tags</span>}
+                {(selectedTags.size === 0 || availableTags.length === 0) && <span>Use meal plan tags</span>}
               </button>
+              {availableTags.length === 0 && (
+                <div className={styles.tooltip}>Save a recipe to enable this filter</div>
+              )}
             </div>
           )}
 
-          <button
-            className={`${styles.excludeChip} ${excludeIngredients.length > 0 ? styles.excludeChipActive : ''}`}
-            onClick={() => setShowExcludeModal(true)}
-          >
-            {excludeIngredients.length > 0
-              ? `Excluding ${excludeIngredients.length} ingredient${excludeIngredients.length !== 1 ? 's' : ''}`
-              : 'Exclude ingredients'}
-          </button>
+          {loadingExcluded ? (
+            <div className={styles.filterChipLoading}>
+              <span className={styles.filterSpinner} />
+              Exclude ingredients
+            </div>
+          ) : (
+            <button
+              className={`${styles.excludeChip} ${excludeIngredients.length > 0 ? styles.excludeChipActive : ''}`}
+              onClick={() => setShowExcludeModal(true)}
+            >
+              {excludeIngredients.length > 0
+                ? `Excluding ${excludeIngredients.length} ingredient${excludeIngredients.length !== 1 ? 's' : ''}`
+                : 'Exclude ingredients'}
+            </button>
+          )}
         </div>
 
         {showIngredientsModal && (
@@ -517,9 +540,9 @@ export default function Home() {
               <button
                 type="submit"
                 className={styles.excludeAddButton}
-                disabled={!excludeInput.trim()}
+                disabled={!excludeInput.trim() || isAddingExcluded}
               >
-                Add
+                {isAddingExcluded ? '...' : 'Add'}
               </button>
             </form>
             {excludeIngredients.length > 0 ? (
@@ -531,10 +554,15 @@ export default function Home() {
                       className={styles.excludeTrashButton}
                       onClick={() => handleRemoveExcluded(ing)}
                       aria-label={`Remove ${ing}`}
+                      disabled={removingIngredient === ing}
                     >
-                      <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
+                      {removingIngredient === ing ? (
+                        <span className={styles.tagLoader}>...</span>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </button>
                   </li>
                 ))}

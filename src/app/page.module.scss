@@ -73,6 +73,66 @@ $transition: all 0.2s ease;
   border: 1px solid #bbf7d0;
   border-radius: 999px;
   padding: 0.25rem 0.625rem 0.25rem 0.75rem;
+  position: relative;
+}
+
+.filterChipDisabled {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  
+  .funnelButton {
+    color: #6b7280;
+    opacity: 0.8;
+  }
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: white transparent transparent transparent;
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #d1d5db transparent transparent transparent;
+  }
+}
+
+.filterChip:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .filterCheckboxLabel {

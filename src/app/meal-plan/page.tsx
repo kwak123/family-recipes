@@ -21,6 +21,8 @@ export default function MealPlan() {
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>([]);
   const [showExcludeModal, setShowExcludeModal] = useState(false);
   const [excludeInput, setExcludeInput] = useState('');
+  const [isAddingExcluded, setIsAddingExcluded] = useState(false);
+  const [removingIngredient, setRemovingIngredient] = useState<string | null>(null);
 
   const { currentHomeId } = useRecipes();
 
@@ -103,11 +105,7 @@ export default function MealPlan() {
       return;
     }
     
-    // Optimistic update
-    const previous = [...excludedIngredients];
-    setExcludedIngredients([...previous, trimmed]);
-    setExcludeInput('');
-
+    setIsAddingExcluded(true);
     try {
       const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
         method: 'POST',
@@ -117,19 +115,18 @@ export default function MealPlan() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setExcludedIngredients(data.excludedIngredients || []);
+      setExcludeInput('');
     } catch (error) {
       console.error('Failed to add excluded ingredient:', error);
-      setExcludedIngredients(previous);
+    } finally {
+      setIsAddingExcluded(false);
     }
   };
 
   const handleRemoveExcluded = async (ingredient: string) => {
     if (!currentHomeId) return;
     
-    // Optimistic update
-    const previous = [...excludedIngredients];
-    setExcludedIngredients(excludedIngredients.filter(i => i !== ingredient));
-
+    setRemovingIngredient(ingredient);
     try {
       const response = await fetch(`/api/homes/${currentHomeId}/excluded-ingredients`, {
         method: 'DELETE',
@@ -141,7 +138,8 @@ export default function MealPlan() {
       setExcludedIngredients(data.excludedIngredients || []);
     } catch (error) {
       console.error('Failed to remove excluded ingredient:', error);
-      setExcludedIngredients(previous);
+    } finally {
+      setRemovingIngredient(null);
     }
   };
 
@@ -407,9 +405,9 @@ export default function MealPlan() {
               <button
                 type="submit"
                 className={styles.excludeAddButton}
-                disabled={!excludeInput.trim()}
+                disabled={!excludeInput.trim() || isAddingExcluded}
               >
-                Add
+                {isAddingExcluded ? '...' : 'Add'}
               </button>
             </form>
             {excludedIngredients.length > 0 && (
@@ -421,8 +419,9 @@ export default function MealPlan() {
                       className={styles.excludedTagRemove}
                       onClick={() => handleRemoveExcluded(ing)}
                       aria-label={`Remove ${ing}`}
+                      disabled={removingIngredient === ing}
                     >
-                      ✕
+                      {removingIngredient === ing ? '...' : '✕'}
                     </button>
                   </span>
                 ))}
