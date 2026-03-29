@@ -64,11 +64,15 @@ export default function InvitePage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.heading}>Invite Someone</h1>
-      <p className={styles.subtitle}>
-        Enter the email address of someone you&apos;d like to invite to Family Recipes.
-        They&apos;ll be able to sign in once invited.
-      </p>
+      <div className={styles.header}>
+        <div className={styles.headerTop}>
+          <h1>Invite Someone</h1>
+        </div>
+        <p className={styles.subtitle}>
+          Enter the email address of someone you&apos;d like to invite to Family Recipes.
+          They&apos;ll be able to sign in once invited.
+        </p>
+      </div>
 
       <div className={styles.card}>
         <form onSubmit={handleSendInvite} className={styles.form}>

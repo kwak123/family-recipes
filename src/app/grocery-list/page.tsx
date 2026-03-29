@@ -83,10 +83,15 @@ export default function GroceryList() {
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1>Grocery List</h1>
-          <Link href="/meal-plan" className={styles.backLink}>
-            ← Back to Meal Plan
-          </Link>
+          <div className={styles.headerTop}>
+            <h1>Grocery List</h1>
+            <div className={styles.headerActions}>
+              <Link href="/meal-plan" className={styles.backLinkButton}>
+                Back to Meal Plan
+              </Link>
+            </div>
+          </div>
+          <p className={styles.subtitle}>Your shopping checklist for the selected home</p>
         </div>
 
         {loading && <p className={styles.loading}>Loading...</p>}
