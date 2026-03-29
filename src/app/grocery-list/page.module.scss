@@ -1,47 +1,75 @@
-// SCSS Variables
-$primary: #2563eb;
-$primary-hover: #1d4ed8;
-$bg: #ffffff;
-$text-secondary: #6b7280;
-$shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-$spacing-sm: 0.75rem;
-$spacing-md: 1rem;
-$spacing-lg: 1.5rem;
-$spacing-xl: 2rem;
-$spacing-2xl: 3rem;
-$border-radius: 0.5rem;
-$transition: all 0.2s ease;
+@import '../variables';
 
 .main {
   min-height: calc(100vh - 64px);
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: $spacing-xl $spacing-lg;
-}
+  padding: $spacing-xl;
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-xl;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-md;
+  @media (max-width: 640px) {
+    padding: $spacing-md;
   }
 }
 
-.backLink {
-  color: $primary;
+.header {
+  margin-bottom: $spacing-xl;
+
+  .headerTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $spacing-md;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: $spacing-sm;
+  }
+
+  .subtitle {
+    color: $text-secondary;
+    font-size: 0.95rem;
+  }
+
+  .headerActions {
+    display: flex;
+    gap: $spacing-sm;
+    align-items: center;
+    flex-shrink: 0;
+
+    @media (max-width: 480px) {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+}
+
+.backLinkButton {
+  padding: $spacing-sm $spacing-lg;
+  font-size: 1rem;
   font-weight: 600;
+  color: $text-secondary;
+  background-color: transparent;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  cursor: pointer;
   transition: $transition;
+  text-decoration: none;
+  display: inline-block;
 
   &:hover {
-    color: $primary-hover;
+    background-color: $bg-secondary;
+    color: $text;
   }
 }
 
